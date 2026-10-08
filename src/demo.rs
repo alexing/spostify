@@ -1051,6 +1051,13 @@ pub fn apply_flags(app: &mut App, page: Option<&str>, show: Option<&str>) {
                 app.settings.eq_shaded = true;
             }
             "milkdrop" => app.settings.milkdrop_open = true,
+            "insights" => app
+                .actions
+                .push(Action::Insights(crate::insights::Action::Open {
+                    uri: "spotify:album:alb0".into(),
+                    name: String::new(),
+                    track: None,
+                })),
             "pins" => {
                 app.settings.pinned_contexts =
                     vec!["spotify:playlist:pl2".into(), "spotify:playlist:pl4".into()];

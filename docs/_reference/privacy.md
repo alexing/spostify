@@ -19,7 +19,7 @@ current release.
   Credential Manager on Windows, Keychain on macOS, and Secret Service on
   Linux. Your Spotify password never passes through Spotifast; you sign in
   on Spotify's own pages. A proxy password, if you set one, uses the same
-  store.
+  store, as does an Anthropic API key for AI insights.
 - **Settings and history.** Settings, window positions, recent plays, the
   last session, skins, themes and MilkDrop presets live in the config
   directory.
@@ -43,6 +43,13 @@ Spotifast connects only to the services below.
 - **LRCLIB.** When the lyrics panel is open and Spotify has no lyrics for the
   song, Spotifast sends its artist, title, album and length to
   [lrclib.net](https://lrclib.net). Nothing identifying you is included.
+- **MusicBrainz and Anthropic.** Only when you open **AI insights** on an
+  album, artist or song, Spotifast looks up its name and artist on
+  [musicbrainz.org](https://musicbrainz.org) for credits, then sends those
+  details to Anthropic's API with your own key so Claude can write the
+  briefing, searching the web as it does. Anthropic's
+  [privacy policy](https://www.anthropic.com/legal/privacy) applies to that
+  request. Briefings are cached in the cache directory.
 - **GitHub.** Once a day, Spotifast asks GitHub for the latest release. You
   can turn automatic checks off in Settings. Downloading an update, and the
   first opening of MilkDrop, also fetch files from GitHub. No Spotify data is

@@ -83,7 +83,8 @@ scroll state do not carry between captures.
 
 Panel fixtures also include `queue-empty`, `queue-loading`, `queue-error`,
 `recents-empty`, `recents-loading`, `recents-error`, `lyrics-empty`,
-`lyrics-loading`, `lyrics-error`, `lyrics-instrumental` and `lyrics-no-playback`.
+`lyrics-loading`, `lyrics-error`, `lyrics-instrumental`, `lyrics-no-playback`
+and `insights` (the AI insights panel with its demo sample).
 Combine a lyrics fixture with `lyrics-fullscreen` first to preview that state
 in full screen, for example `--demo-show lyrics-fullscreen,lyrics-error`.
 
