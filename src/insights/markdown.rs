@@ -282,9 +282,17 @@ pub fn inline(text: &str) -> Vec<Span> {
                 .find(|&j| chars[j].is_whitespace())
                 .unwrap_or(chars.len());
             let mut url: String = chars[i..end].iter().collect();
-            // Sentence punctuation after a bare link is not part of it.
-            while url.ends_with(['.', ',', ';', ':', ')', '!', '?']) {
-                url.pop();
+            // Sentence punctuation after a bare link is not part of it, nor
+            // is a closing parenthesis it did not open; Wikipedia's
+            // "Purple_Rain_(album)" keeps its own.
+            loop {
+                let unbalanced =
+                    url.ends_with(')') && url.matches(')').count() > url.matches('(').count();
+                if url.ends_with(['.', ',', ';', ':', '!', '?']) || unbalanced {
+                    url.pop();
+                } else {
+                    break;
+                }
             }
             let taken = url.chars().count();
             push_text(&mut spans, &mut current, bold, italic);
@@ -324,7 +332,21 @@ fn link(chars: &[char], start: usize) -> Option<(String, String, usize)> {
     if chars.get(close + 1) != Some(&'(') {
         return None;
     }
-    let end = find(chars, close + 2, &[')'])?;
+    // The URL ends at the parenthesis that closes it, so one with its own
+    // parentheses, as Wikipedia's often have, stays whole.
+    let mut depth = 0usize;
+    let end = (close + 2..chars.len()).find(|&j| match chars[j] {
+        '(' => {
+            depth += 1;
+            false
+        }
+        ')' if depth == 0 => true,
+        ')' => {
+            depth -= 1;
+            false
+        }
+        _ => false,
+    })?;
     let url: String = chars[close + 2..end].iter().collect();
     let url = url.trim().to_string();
     if !(url.starts_with("https://") || url.starts_with("http://")) {
@@ -485,6 +507,62 @@ mod tests {
                 text(".", false, false),
             ]
         );
+    }
+
+    #[test]
+    fn urls_keep_their_own_parentheses() {
+        let wiki = "https://en.wikipedia.org/wiki/Purple_Rain_(album)";
+        assert_eq!(
+            inline(&format!("[Purple Rain]({wiki}) was next.")),
+            [
+                Span::Link {
+                    text: "Purple Rain".into(),
+                    url: wiki.into()
+                },
+                text(" was next.", false, false),
+            ]
+        );
+        assert_eq!(
+            inline(&format!("(see {wiki}).")),
+            [
+                text("(see ", false, false),
+                Span::Link {
+                    text: wiki.into(),
+                    url: wiki.into()
+                },
+                text(").", false, false),
+            ]
+        );
+    }
+
+    #[test]
+    fn odd_input_never_panics() {
+        for sample in [
+            "",
+            "#",
+            "######## x",
+            "- ",
+            "1.",
+            "[",
+            "[]",
+            "[](",
+            "[x](https://",
+            "**",
+            "*",
+            "`",
+            "\\",
+            "https://",
+            "> ",
+            "  ",
+            "\u{301}",
+            "## \u{1f3b5}**\u{e9}",
+            "[\u{e9}](https://\u{e9}(\u{e9})",
+            "_\u{1f600}_",
+            "1) \u{65e5}\u{672c}",
+            "***bold italic***",
+        ] {
+            let _ = parse(sample);
+        }
     }
 
     #[test]
