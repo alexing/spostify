@@ -3166,3 +3166,134 @@ msgstr "I Windows på ARM kommer OpenGL, som Spotifast ritar med, från Microsof
 
 #~ msgid "Reduce lyrics motion"
 #~ msgstr "Minska låttextrörelse"
+
+#: src/ui/insights.rs:23
+msgid "AI insights"
+msgstr "AI-insikter"
+
+#: src/ui/insights.rs:112
+msgid "The answer was cut short."
+msgstr "Svaret avbröts."
+
+#: src/ui/insights.rs:136
+msgid "Song"
+msgstr "Låt"
+
+#. Translators: {name} is an album, artist or song name.
+#: src/ui/insights.rs:180
+#, rust-format
+msgid "Researching “{name}”…"
+msgstr "Undersöker ”{name}”…"
+
+#: src/ui/insights.rs:187
+msgid ""
+"Claude is checking MusicBrainz credits and the web. This can take a minute."
+msgstr "Claude går igenom medverkande på MusicBrainz och webben. Det kan ta en minut."
+
+#: src/ui/insights.rs:201
+msgid ""
+"AI insights are written by Claude with your own Anthropic API key. Add one "
+"in Settings to start."
+msgstr "AI-insikter skrivs av Claude med din egen API-nyckel från Anthropic. Lägg till en i Inställningar för att börja."
+
+#: src/ui/insights.rs:206
+msgid "Anthropic rejected the API key. Check it in Settings."
+msgstr "Anthropic avvisade API-nyckeln. Kontrollera den i Inställningar."
+
+#: src/ui/insights.rs:211
+msgid "Anthropic is limiting requests from this key. Try again in a minute."
+msgstr "Anthropic begränsar förfrågningar från den här nyckeln. Försök igen om en minut."
+
+#: src/ui/insights.rs:215
+msgid "Anthropic is busy right now. Try again shortly."
+msgstr "Anthropic är överbelastat just nu. Försök igen strax."
+
+#: src/ui/insights.rs:217
+msgid "Claude declined to write about this item."
+msgstr "Claude avböjde att skriva om det här objektet."
+
+#: src/ui/insights.rs:218
+msgid "Claude returned an empty answer. Try again."
+msgstr "Claude gav ett tomt svar. Försök igen."
+
+#: src/ui/insights.rs:219
+msgid "AI insights need a network connection."
+msgstr "AI-insikter kräver en nätverksanslutning."
+
+#. Translators: {error} is a network error message.
+#: src/ui/insights.rs:221
+#, rust-format
+msgid "Couldn't reach Anthropic: {error}"
+msgstr "Kan inte nå Anthropic: {error}"
+
+#. Translators: {error} is the error Anthropic reported.
+#: src/ui/insights.rs:230
+#, rust-format
+msgid "Anthropic returned an error: {error}"
+msgstr "Anthropic returnerade ett fel: {error}"
+
+#: src/ui/insights.rs:252
+msgid "Open Settings"
+msgstr "Öppna Inställningar"
+
+#: src/ui/insights.rs:280
+msgid "Regenerate"
+msgstr "Skapa på nytt"
+
+#: src/ui/insights.rs:295
+msgid ""
+"Written by Claude from MusicBrainz credits and web search. It can make "
+"mistakes."
+msgstr "Skrivet av Claude utifrån medverkande på MusicBrainz och webbsökningar. Kan innehålla fel."
+
+#. Translators: {date} is a date in YYYY-MM-DD form.
+#: src/ui/insights.rs:313
+#, rust-format
+msgid "Saved {date}"
+msgstr "Sparat {date}"
+
+#. Translators: {date} is a date in YYYY-MM-DD form.
+#: src/ui/insights.rs:316
+#, rust-format
+msgid "Written {date}"
+msgstr "Skrivet {date}"
+
+#: src/ui/insights.rs:463 src/ui/insights.rs:472
+msgid "Anthropic API key"
+msgstr "API-nyckel för Anthropic"
+
+#: src/ui/insights.rs:475
+msgid ""
+"Claude writes the insights with your own key. Each new insight is a paid "
+"request to Anthropic. The key is kept in the system credential store."
+msgstr "Claude skriver insikterna med din egen nyckel. Varje ny insikt är en betald förfrågan till Anthropic. Nyckeln förvaras i systemets lagring för inloggningsuppgifter."
+
+#: src/ui/insights.rs:491
+msgid "A key is saved in the system credential store."
+msgstr "En nyckel är sparad i systemets lagring för inloggningsuppgifter."
+
+#: src/ui/insights.rs:493
+msgid "Using the ANTHROPIC_API_KEY environment variable."
+msgstr "Använder miljövariabeln ANTHROPIC_API_KEY."
+
+#: src/ui/insights.rs:495
+msgid "No key yet."
+msgstr "Ingen nyckel än."
+
+#: src/ui/insights.rs:498
+msgid ""
+"The system credential store is unavailable. Unlock it, or set "
+"ANTHROPIC_API_KEY."
+msgstr "Systemets lagring för inloggningsuppgifter är inte tillgänglig. Lås upp den eller ange ANTHROPIC_API_KEY."
+
+#: src/ui/insights.rs:535
+msgid "Save key"
+msgstr "Spara nyckel"
+
+#: src/ui/insights.rs:544
+msgid "Remove key"
+msgstr "Ta bort nyckel"
+
+#: src/ui/insights.rs:553
+msgid "Create a key in the Anthropic Console"
+msgstr "Skapa en nyckel i Anthropic Console"

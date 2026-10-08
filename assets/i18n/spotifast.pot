@@ -3056,3 +3056,134 @@ msgstr ""
 #: src/window.rs:35
 msgid "On Windows on ARM, the OpenGL that Spotifast draws with comes from Microsoft's OpenCL, OpenGL & Vulkan Compatibility Pack. Open its Microsoft Store page to install or repair it?"
 msgstr ""
+
+#: src/ui/insights.rs:23
+msgid "AI insights"
+msgstr ""
+
+#: src/ui/insights.rs:112
+msgid "The answer was cut short."
+msgstr ""
+
+#: src/ui/insights.rs:136
+msgid "Song"
+msgstr ""
+
+#. Translators: {name} is an album, artist or song name.
+#: src/ui/insights.rs:180
+#, rust-format
+msgid "Researching “{name}”…"
+msgstr ""
+
+#: src/ui/insights.rs:187
+msgid ""
+"Claude is checking MusicBrainz credits and the web. This can take a minute."
+msgstr ""
+
+#: src/ui/insights.rs:201
+msgid ""
+"AI insights are written by Claude with your own Anthropic API key. Add one "
+"in Settings to start."
+msgstr ""
+
+#: src/ui/insights.rs:206
+msgid "Anthropic rejected the API key. Check it in Settings."
+msgstr ""
+
+#: src/ui/insights.rs:211
+msgid "Anthropic is limiting requests from this key. Try again in a minute."
+msgstr ""
+
+#: src/ui/insights.rs:215
+msgid "Anthropic is busy right now. Try again shortly."
+msgstr ""
+
+#: src/ui/insights.rs:217
+msgid "Claude declined to write about this item."
+msgstr ""
+
+#: src/ui/insights.rs:218
+msgid "Claude returned an empty answer. Try again."
+msgstr ""
+
+#: src/ui/insights.rs:219
+msgid "AI insights need a network connection."
+msgstr ""
+
+#. Translators: {error} is a network error message.
+#: src/ui/insights.rs:221
+#, rust-format
+msgid "Couldn't reach Anthropic: {error}"
+msgstr ""
+
+#. Translators: {error} is the error Anthropic reported.
+#: src/ui/insights.rs:230
+#, rust-format
+msgid "Anthropic returned an error: {error}"
+msgstr ""
+
+#: src/ui/insights.rs:252
+msgid "Open Settings"
+msgstr ""
+
+#: src/ui/insights.rs:280
+msgid "Regenerate"
+msgstr ""
+
+#: src/ui/insights.rs:295
+msgid ""
+"Written by Claude from MusicBrainz credits and web search. It can make "
+"mistakes."
+msgstr ""
+
+#. Translators: {date} is a date in YYYY-MM-DD form.
+#: src/ui/insights.rs:313
+#, rust-format
+msgid "Saved {date}"
+msgstr ""
+
+#. Translators: {date} is a date in YYYY-MM-DD form.
+#: src/ui/insights.rs:316
+#, rust-format
+msgid "Written {date}"
+msgstr ""
+
+#: src/ui/insights.rs:463 src/ui/insights.rs:472
+msgid "Anthropic API key"
+msgstr ""
+
+#: src/ui/insights.rs:475
+msgid ""
+"Claude writes the insights with your own key. Each new insight is a paid "
+"request to Anthropic. The key is kept in the system credential store."
+msgstr ""
+
+#: src/ui/insights.rs:491
+msgid "A key is saved in the system credential store."
+msgstr ""
+
+#: src/ui/insights.rs:493
+msgid "Using the ANTHROPIC_API_KEY environment variable."
+msgstr ""
+
+#: src/ui/insights.rs:495
+msgid "No key yet."
+msgstr ""
+
+#: src/ui/insights.rs:498
+msgid ""
+"The system credential store is unavailable. Unlock it, or set "
+"ANTHROPIC_API_KEY."
+msgstr ""
+
+#: src/ui/insights.rs:535
+msgid "Save key"
+msgstr ""
+
+#: src/ui/insights.rs:544
+msgid "Remove key"
+msgstr ""
+
+#: src/ui/insights.rs:553
+msgid "Create a key in the Anthropic Console"
+msgstr ""

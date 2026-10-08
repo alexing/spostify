@@ -303,6 +303,7 @@ pub fn actions_row(
             app.actions.push(Action::SaveRadio(seed.clone()));
         }
         if let Some(uri) = &actions.play_uri {
+            super::insights::button(app, ui, uri, actions.name);
             let more = theme::icon_button(
                 ui,
                 Icon::Ellipsis,

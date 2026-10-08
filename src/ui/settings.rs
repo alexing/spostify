@@ -166,9 +166,14 @@ fn setting_slider<N: egui::emath::Numeric>(
 pub(crate) fn clear_search(ctx: &egui::Context) {
     ctx.data_mut(|data| data.remove::<String>(egui::Id::new(SETTINGS_FILTER_ID)));
 }
+
+/// Fill in the search, so a flow that lands on a row shows only that row.
+pub(crate) fn search_for(ctx: &egui::Context, text: String) {
+    ctx.data_mut(|data| data.insert_temp(egui::Id::new(SETTINGS_FILTER_ID), text));
+}
 const PROXY_DIRTY_ID: &str = "proxy-settings-dirty";
 
-fn section(
+pub(super) fn section(
     ui: &mut egui::Ui,
     palette: &Palette,
     title: &str,
@@ -1919,6 +1924,8 @@ pub fn show(app: &mut App, ui: &mut egui::Ui) {
             }
         });
     }
+
+    any_visible |= super::insights::settings_section(app, ui, &needle);
 
     if !needle.is_empty() && !any_visible {
         widgets::empty_state(

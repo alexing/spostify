@@ -3085,3 +3085,134 @@ msgstr "在 ARM 版 Windows 上，Spotifast 用來繪製介面的 OpenGL 由 Mic
 
 #~ msgid "Reduce lyrics motion"
 #~ msgstr "減少歌詞動畫"
+
+#: src/ui/insights.rs:23
+msgid "AI insights"
+msgstr "AI 解讀"
+
+#: src/ui/insights.rs:112
+msgid "The answer was cut short."
+msgstr "回答被截斷了。"
+
+#: src/ui/insights.rs:136
+msgid "Song"
+msgstr "歌曲"
+
+#. Translators: {name} is an album, artist or song name.
+#: src/ui/insights.rs:180
+#, rust-format
+msgid "Researching “{name}”…"
+msgstr "正在研究「{name}」…"
+
+#: src/ui/insights.rs:187
+msgid ""
+"Claude is checking MusicBrainz credits and the web. This can take a minute."
+msgstr "Claude 正在查閱 MusicBrainz 的製作人員資訊與網路資料，可能需要一分鐘。"
+
+#: src/ui/insights.rs:201
+msgid ""
+"AI insights are written by Claude with your own Anthropic API key. Add one "
+"in Settings to start."
+msgstr "AI 解讀由 Claude 使用你自己的 Anthropic API 金鑰撰寫。請先在設定中加入金鑰。"
+
+#: src/ui/insights.rs:206
+msgid "Anthropic rejected the API key. Check it in Settings."
+msgstr "Anthropic 拒絕了此 API 金鑰。請在設定中檢查。"
+
+#: src/ui/insights.rs:211
+msgid "Anthropic is limiting requests from this key. Try again in a minute."
+msgstr "Anthropic 正在限制此金鑰的請求。請一分鐘後再試。"
+
+#: src/ui/insights.rs:215
+msgid "Anthropic is busy right now. Try again shortly."
+msgstr "Anthropic 目前忙碌中。請稍後再試。"
+
+#: src/ui/insights.rs:217
+msgid "Claude declined to write about this item."
+msgstr "Claude 拒絕撰寫關於此項目的內容。"
+
+#: src/ui/insights.rs:218
+msgid "Claude returned an empty answer. Try again."
+msgstr "Claude 傳回了空白回答。請再試一次。"
+
+#: src/ui/insights.rs:219
+msgid "AI insights need a network connection."
+msgstr "AI 解讀需要網路連線。"
+
+#. Translators: {error} is a network error message.
+#: src/ui/insights.rs:221
+#, rust-format
+msgid "Couldn't reach Anthropic: {error}"
+msgstr "無法連線至 Anthropic：{error}"
+
+#. Translators: {error} is the error Anthropic reported.
+#: src/ui/insights.rs:230
+#, rust-format
+msgid "Anthropic returned an error: {error}"
+msgstr "Anthropic 傳回錯誤：{error}"
+
+#: src/ui/insights.rs:252
+msgid "Open Settings"
+msgstr "開啟設定"
+
+#: src/ui/insights.rs:280
+msgid "Regenerate"
+msgstr "重新產生"
+
+#: src/ui/insights.rs:295
+msgid ""
+"Written by Claude from MusicBrainz credits and web search. It can make "
+"mistakes."
+msgstr "由 Claude 根據 MusicBrainz 製作人員資訊與網路搜尋撰寫，可能有誤。"
+
+#. Translators: {date} is a date in YYYY-MM-DD form.
+#: src/ui/insights.rs:313
+#, rust-format
+msgid "Saved {date}"
+msgstr "儲存於 {date}"
+
+#. Translators: {date} is a date in YYYY-MM-DD form.
+#: src/ui/insights.rs:316
+#, rust-format
+msgid "Written {date}"
+msgstr "撰寫於 {date}"
+
+#: src/ui/insights.rs:463 src/ui/insights.rs:472
+msgid "Anthropic API key"
+msgstr "Anthropic API 金鑰"
+
+#: src/ui/insights.rs:475
+msgid ""
+"Claude writes the insights with your own key. Each new insight is a paid "
+"request to Anthropic. The key is kept in the system credential store."
+msgstr "Claude 使用你自己的金鑰撰寫解讀。每次產生新解讀都是一次向 Anthropic 的付費請求。金鑰儲存在系統憑證存放區中。"
+
+#: src/ui/insights.rs:491
+msgid "A key is saved in the system credential store."
+msgstr "已有金鑰儲存在系統憑證存放區中。"
+
+#: src/ui/insights.rs:493
+msgid "Using the ANTHROPIC_API_KEY environment variable."
+msgstr "正在使用環境變數 ANTHROPIC_API_KEY。"
+
+#: src/ui/insights.rs:495
+msgid "No key yet."
+msgstr "尚未設定金鑰。"
+
+#: src/ui/insights.rs:498
+msgid ""
+"The system credential store is unavailable. Unlock it, or set "
+"ANTHROPIC_API_KEY."
+msgstr "系統憑證存放區無法使用。請將其解鎖，或設定 ANTHROPIC_API_KEY。"
+
+#: src/ui/insights.rs:535
+msgid "Save key"
+msgstr "儲存金鑰"
+
+#: src/ui/insights.rs:544
+msgid "Remove key"
+msgstr "移除金鑰"
+
+#: src/ui/insights.rs:553
+msgid "Create a key in the Anthropic Console"
+msgstr "在 Anthropic Console 中建立金鑰"

@@ -920,6 +920,8 @@ pub struct Toast {
 #[derive(Clone, Debug)]
 pub enum Action {
     Open(Page),
+    /// AI insights: open, regenerate, close, and the API key in Settings.
+    Insights(crate::insights::Action),
     /// Opens the radio of a song shown in a list, after caching the row's
     /// song so the page has its name and cover (#644).
     OpenSongRadio {

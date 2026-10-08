@@ -3184,3 +3184,134 @@ msgstr "Op Windows on ARM komt de OpenGL waarmee Spotifast tekent uit het OpenCL
 
 #~ msgid "Reduce lyrics motion"
 #~ msgstr "Songtekstbeweging verminderen"
+
+#: src/ui/insights.rs:23
+msgid "AI insights"
+msgstr "AI-inzichten"
+
+#: src/ui/insights.rs:112
+msgid "The answer was cut short."
+msgstr "Het antwoord is afgebroken."
+
+#: src/ui/insights.rs:136
+msgid "Song"
+msgstr "Nummer"
+
+#. Translators: {name} is an album, artist or song name.
+#: src/ui/insights.rs:180
+#, rust-format
+msgid "Researching “{name}”…"
+msgstr "„{name}” wordt onderzocht…"
+
+#: src/ui/insights.rs:187
+msgid ""
+"Claude is checking MusicBrainz credits and the web. This can take a minute."
+msgstr "Claude bekijkt de credits op MusicBrainz en het web. Dit kan een minuut duren."
+
+#: src/ui/insights.rs:201
+msgid ""
+"AI insights are written by Claude with your own Anthropic API key. Add one "
+"in Settings to start."
+msgstr "AI-inzichten worden door Claude geschreven met je eigen Anthropic-API-sleutel. Voeg er een toe in Instellingen om te beginnen."
+
+#: src/ui/insights.rs:206
+msgid "Anthropic rejected the API key. Check it in Settings."
+msgstr "Anthropic heeft de API-sleutel geweigerd. Controleer hem in Instellingen."
+
+#: src/ui/insights.rs:211
+msgid "Anthropic is limiting requests from this key. Try again in a minute."
+msgstr "Anthropic beperkt de verzoeken van deze sleutel. Probeer het over een minuut opnieuw."
+
+#: src/ui/insights.rs:215
+msgid "Anthropic is busy right now. Try again shortly."
+msgstr "Anthropic is nu overbelast. Probeer het zo opnieuw."
+
+#: src/ui/insights.rs:217
+msgid "Claude declined to write about this item."
+msgstr "Claude wilde niet over dit item schrijven."
+
+#: src/ui/insights.rs:218
+msgid "Claude returned an empty answer. Try again."
+msgstr "Claude gaf een leeg antwoord. Probeer het opnieuw."
+
+#: src/ui/insights.rs:219
+msgid "AI insights need a network connection."
+msgstr "AI-inzichten hebben een netwerkverbinding nodig."
+
+#. Translators: {error} is a network error message.
+#: src/ui/insights.rs:221
+#, rust-format
+msgid "Couldn't reach Anthropic: {error}"
+msgstr "Kan Anthropic niet bereiken: {error}"
+
+#. Translators: {error} is the error Anthropic reported.
+#: src/ui/insights.rs:230
+#, rust-format
+msgid "Anthropic returned an error: {error}"
+msgstr "Anthropic gaf een fout: {error}"
+
+#: src/ui/insights.rs:252
+msgid "Open Settings"
+msgstr "Instellingen openen"
+
+#: src/ui/insights.rs:280
+msgid "Regenerate"
+msgstr "Opnieuw maken"
+
+#: src/ui/insights.rs:295
+msgid ""
+"Written by Claude from MusicBrainz credits and web search. It can make "
+"mistakes."
+msgstr "Geschreven door Claude op basis van MusicBrainz-credits en zoekopdrachten op het web. Kan fouten bevatten."
+
+#. Translators: {date} is a date in YYYY-MM-DD form.
+#: src/ui/insights.rs:313
+#, rust-format
+msgid "Saved {date}"
+msgstr "Opgeslagen op {date}"
+
+#. Translators: {date} is a date in YYYY-MM-DD form.
+#: src/ui/insights.rs:316
+#, rust-format
+msgid "Written {date}"
+msgstr "Geschreven op {date}"
+
+#: src/ui/insights.rs:463 src/ui/insights.rs:472
+msgid "Anthropic API key"
+msgstr "Anthropic-API-sleutel"
+
+#: src/ui/insights.rs:475
+msgid ""
+"Claude writes the insights with your own key. Each new insight is a paid "
+"request to Anthropic. The key is kept in the system credential store."
+msgstr "Claude schrijft de inzichten met je eigen sleutel. Elk nieuw inzicht is een betaald verzoek aan Anthropic. De sleutel staat in de wachtwoordopslag van het systeem."
+
+#: src/ui/insights.rs:491
+msgid "A key is saved in the system credential store."
+msgstr "Er is een sleutel opgeslagen in de wachtwoordopslag van het systeem."
+
+#: src/ui/insights.rs:493
+msgid "Using the ANTHROPIC_API_KEY environment variable."
+msgstr "De omgevingsvariabele ANTHROPIC_API_KEY wordt gebruikt."
+
+#: src/ui/insights.rs:495
+msgid "No key yet."
+msgstr "Nog geen sleutel."
+
+#: src/ui/insights.rs:498
+msgid ""
+"The system credential store is unavailable. Unlock it, or set "
+"ANTHROPIC_API_KEY."
+msgstr "De wachtwoordopslag van het systeem is niet beschikbaar. Ontgrendel hem of stel ANTHROPIC_API_KEY in."
+
+#: src/ui/insights.rs:535
+msgid "Save key"
+msgstr "Sleutel opslaan"
+
+#: src/ui/insights.rs:544
+msgid "Remove key"
+msgstr "Sleutel verwijderen"
+
+#: src/ui/insights.rs:553
+msgid "Create a key in the Anthropic Console"
+msgstr "Maak een sleutel in de Anthropic Console"

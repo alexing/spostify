@@ -418,6 +418,7 @@ pub struct App {
     pub lyrics_uri: Option<String>,
     /// `Loaded(None)` when no lyrics are available.
     pub lyrics: Loadable<Option<crate::lyrics::Lyrics>>,
+    pub insights: crate::insights::State,
     /// Whether the panel follows the current line. Manual scrolling disables
     /// it until Follow is used or the track changes.
     pub lyrics_following: bool,
@@ -867,6 +868,7 @@ impl App {
             softened_covers: Default::default(),
             lyrics_uri: None,
             lyrics: Loadable::NotLoaded,
+            insights: Default::default(),
             lyrics_following: true,
             lyrics_line_shown: None,
             show_devices: false,
@@ -1920,6 +1922,7 @@ impl App {
                     }
                     Err(error) => log::warn!("rootlist unavailable: {error}"),
                 },
+                Event::Insights(outcome) => self.receive_insights(*outcome),
                 Event::Lyrics { uri, result } => {
                     if self.lyrics_uri.as_deref() == Some(uri.as_str()) {
                         self.lyrics = match result {
@@ -9195,6 +9198,7 @@ impl App {
                     ));
                 }
             }
+            Action::Insights(action) => self.apply_insights(action, ctx),
             Action::OpenUrl(url) => {
                 // Open links off the UI thread with the platform-specific
                 // launcher used elsewhere in the app.
@@ -10476,6 +10480,7 @@ fn cover_error(locale: Locale, error: &crate::api::client::ApiError) -> String {
     }
 }
 
+mod insights;
 mod radio;
 
 #[cfg(test)]

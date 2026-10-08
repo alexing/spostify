@@ -910,6 +910,7 @@ pub fn item_menu(
                     track: Box::new(track.clone()),
                 });
             }
+            super::insights::menu_item(app, ui, &uri, &label, Some(track));
             let artists: Vec<&ArtistRef> = track
                 .artists
                 .iter()
@@ -1078,6 +1079,7 @@ pub fn context_menu_items(
     {
         app.actions.push(Action::Open(Page::Radio(uri.to_string())));
     }
+    super::insights::menu_item(app, ui, uri, name, None);
     if menu_item(
         ui,
         &palette,

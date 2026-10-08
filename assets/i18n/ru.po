@@ -3199,3 +3199,134 @@ msgstr "В Windows на ARM OpenGL, с помощью которого рису�
 
 #~ msgid "Reduce lyrics motion"
 #~ msgstr "Уменьшить анимацию текста"
+
+#: src/ui/insights.rs:23
+msgid "AI insights"
+msgstr "ИИ-справка"
+
+#: src/ui/insights.rs:112
+msgid "The answer was cut short."
+msgstr "Ответ был обрезан."
+
+#: src/ui/insights.rs:136
+msgid "Song"
+msgstr "Трек"
+
+#. Translators: {name} is an album, artist or song name.
+#: src/ui/insights.rs:180
+#, rust-format
+msgid "Researching “{name}”…"
+msgstr "Изучаем «{name}»…"
+
+#: src/ui/insights.rs:187
+msgid ""
+"Claude is checking MusicBrainz credits and the web. This can take a minute."
+msgstr "Claude проверяет данные об участниках в MusicBrainz и в интернете. Это может занять минуту."
+
+#: src/ui/insights.rs:201
+msgid ""
+"AI insights are written by Claude with your own Anthropic API key. Add one "
+"in Settings to start."
+msgstr "ИИ-справку пишет Claude с вашим собственным API-ключом Anthropic. Добавьте его в настройках, чтобы начать."
+
+#: src/ui/insights.rs:206
+msgid "Anthropic rejected the API key. Check it in Settings."
+msgstr "Anthropic отклонил API-ключ. Проверьте его в настройках."
+
+#: src/ui/insights.rs:211
+msgid "Anthropic is limiting requests from this key. Try again in a minute."
+msgstr "Anthropic ограничивает запросы с этого ключа. Повторите попытку через минуту."
+
+#: src/ui/insights.rs:215
+msgid "Anthropic is busy right now. Try again shortly."
+msgstr "Anthropic сейчас перегружен. Повторите попытку чуть позже."
+
+#: src/ui/insights.rs:217
+msgid "Claude declined to write about this item."
+msgstr "Claude отказался писать об этом элементе."
+
+#: src/ui/insights.rs:218
+msgid "Claude returned an empty answer. Try again."
+msgstr "Claude вернул пустой ответ. Повторите попытку."
+
+#: src/ui/insights.rs:219
+msgid "AI insights need a network connection."
+msgstr "Для ИИ-справки нужно подключение к сети."
+
+#. Translators: {error} is a network error message.
+#: src/ui/insights.rs:221
+#, rust-format
+msgid "Couldn't reach Anthropic: {error}"
+msgstr "Не удалось связаться с Anthropic: {error}"
+
+#. Translators: {error} is the error Anthropic reported.
+#: src/ui/insights.rs:230
+#, rust-format
+msgid "Anthropic returned an error: {error}"
+msgstr "Anthropic вернул ошибку: {error}"
+
+#: src/ui/insights.rs:252
+msgid "Open Settings"
+msgstr "Открыть настройки"
+
+#: src/ui/insights.rs:280
+msgid "Regenerate"
+msgstr "Создать заново"
+
+#: src/ui/insights.rs:295
+msgid ""
+"Written by Claude from MusicBrainz credits and web search. It can make "
+"mistakes."
+msgstr "Написано Claude на основе данных MusicBrainz и поиска в интернете. Возможны ошибки."
+
+#. Translators: {date} is a date in YYYY-MM-DD form.
+#: src/ui/insights.rs:313
+#, rust-format
+msgid "Saved {date}"
+msgstr "Сохранено {date}"
+
+#. Translators: {date} is a date in YYYY-MM-DD form.
+#: src/ui/insights.rs:316
+#, rust-format
+msgid "Written {date}"
+msgstr "Написано {date}"
+
+#: src/ui/insights.rs:463 src/ui/insights.rs:472
+msgid "Anthropic API key"
+msgstr "API-ключ Anthropic"
+
+#: src/ui/insights.rs:475
+msgid ""
+"Claude writes the insights with your own key. Each new insight is a paid "
+"request to Anthropic. The key is kept in the system credential store."
+msgstr "Claude пишет справки с вашим собственным ключом. Каждая новая справка — платный запрос к Anthropic. Ключ хранится в системном хранилище учётных данных."
+
+#: src/ui/insights.rs:491
+msgid "A key is saved in the system credential store."
+msgstr "Ключ сохранён в системном хранилище учётных данных."
+
+#: src/ui/insights.rs:493
+msgid "Using the ANTHROPIC_API_KEY environment variable."
+msgstr "Используется переменная окружения ANTHROPIC_API_KEY."
+
+#: src/ui/insights.rs:495
+msgid "No key yet."
+msgstr "Ключа пока нет."
+
+#: src/ui/insights.rs:498
+msgid ""
+"The system credential store is unavailable. Unlock it, or set "
+"ANTHROPIC_API_KEY."
+msgstr "Системное хранилище учётных данных недоступно. Разблокируйте его или задайте ANTHROPIC_API_KEY."
+
+#: src/ui/insights.rs:535
+msgid "Save key"
+msgstr "Сохранить ключ"
+
+#: src/ui/insights.rs:544
+msgid "Remove key"
+msgstr "Удалить ключ"
+
+#: src/ui/insights.rs:553
+msgid "Create a key in the Anthropic Console"
+msgstr "Создать ключ в консоли Anthropic"

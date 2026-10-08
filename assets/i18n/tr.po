@@ -3194,3 +3194,134 @@ msgstr "Spotifast penceresini açamıyor"
 #: src/window.rs:35
 msgid "On Windows on ARM, the OpenGL that Spotifast draws with comes from Microsoft's OpenCL, OpenGL & Vulkan Compatibility Pack. Open its Microsoft Store page to install or repair it?"
 msgstr "ARM üzerinde Windows'ta Spotifast'in çizim için kullandığı OpenGL, Microsoft'un OpenCL, OpenGL & Vulkan Compatibility Pack paketinden gelir. Yüklemek veya onarmak için Microsoft Store sayfası açılsın mı?"
+
+#: src/ui/insights.rs:23
+msgid "AI insights"
+msgstr "Yapay zekâ bilgileri"
+
+#: src/ui/insights.rs:112
+msgid "The answer was cut short."
+msgstr "Yanıt yarıda kesildi."
+
+#: src/ui/insights.rs:136
+msgid "Song"
+msgstr "Şarkı"
+
+#. Translators: {name} is an album, artist or song name.
+#: src/ui/insights.rs:180
+#, rust-format
+msgid "Researching “{name}”…"
+msgstr "“{name}” araştırılıyor…"
+
+#: src/ui/insights.rs:187
+msgid ""
+"Claude is checking MusicBrainz credits and the web. This can take a minute."
+msgstr "Claude, MusicBrainz katkı bilgilerini ve web’i inceliyor. Bu bir dakika sürebilir."
+
+#: src/ui/insights.rs:201
+msgid ""
+"AI insights are written by Claude with your own Anthropic API key. Add one "
+"in Settings to start."
+msgstr "Yapay zekâ bilgilerini Claude, kendi Anthropic API anahtarınızla yazar. Başlamak için Ayarlar’dan bir anahtar ekleyin."
+
+#: src/ui/insights.rs:206
+msgid "Anthropic rejected the API key. Check it in Settings."
+msgstr "Anthropic API anahtarını reddetti. Ayarlar’dan kontrol edin."
+
+#: src/ui/insights.rs:211
+msgid "Anthropic is limiting requests from this key. Try again in a minute."
+msgstr "Anthropic bu anahtarın isteklerini sınırlıyor. Bir dakika sonra yeniden deneyin."
+
+#: src/ui/insights.rs:215
+msgid "Anthropic is busy right now. Try again shortly."
+msgstr "Anthropic şu anda yoğun. Biraz sonra yeniden deneyin."
+
+#: src/ui/insights.rs:217
+msgid "Claude declined to write about this item."
+msgstr "Claude bu öğe hakkında yazmayı reddetti."
+
+#: src/ui/insights.rs:218
+msgid "Claude returned an empty answer. Try again."
+msgstr "Claude boş bir yanıt döndürdü. Yeniden deneyin."
+
+#: src/ui/insights.rs:219
+msgid "AI insights need a network connection."
+msgstr "Yapay zekâ bilgileri için ağ bağlantısı gerekir."
+
+#. Translators: {error} is a network error message.
+#: src/ui/insights.rs:221
+#, rust-format
+msgid "Couldn't reach Anthropic: {error}"
+msgstr "Anthropic’e ulaşılamadı: {error}"
+
+#. Translators: {error} is the error Anthropic reported.
+#: src/ui/insights.rs:230
+#, rust-format
+msgid "Anthropic returned an error: {error}"
+msgstr "Anthropic bir hata döndürdü: {error}"
+
+#: src/ui/insights.rs:252
+msgid "Open Settings"
+msgstr "Ayarlar’ı aç"
+
+#: src/ui/insights.rs:280
+msgid "Regenerate"
+msgstr "Yeniden oluştur"
+
+#: src/ui/insights.rs:295
+msgid ""
+"Written by Claude from MusicBrainz credits and web search. It can make "
+"mistakes."
+msgstr "Claude tarafından MusicBrainz katkı bilgileri ve web aramasıyla yazıldı. Hata içerebilir."
+
+#. Translators: {date} is a date in YYYY-MM-DD form.
+#: src/ui/insights.rs:313
+#, rust-format
+msgid "Saved {date}"
+msgstr "Kaydedildi: {date}"
+
+#. Translators: {date} is a date in YYYY-MM-DD form.
+#: src/ui/insights.rs:316
+#, rust-format
+msgid "Written {date}"
+msgstr "Yazıldı: {date}"
+
+#: src/ui/insights.rs:463 src/ui/insights.rs:472
+msgid "Anthropic API key"
+msgstr "Anthropic API anahtarı"
+
+#: src/ui/insights.rs:475
+msgid ""
+"Claude writes the insights with your own key. Each new insight is a paid "
+"request to Anthropic. The key is kept in the system credential store."
+msgstr "Claude bilgileri kendi anahtarınızla yazar. Her yeni bilgi, Anthropic’e yapılan ücretli bir istektir. Anahtar sistemin kimlik bilgisi deposunda tutulur."
+
+#: src/ui/insights.rs:491
+msgid "A key is saved in the system credential store."
+msgstr "Sistemin kimlik bilgisi deposunda kayıtlı bir anahtar var."
+
+#: src/ui/insights.rs:493
+msgid "Using the ANTHROPIC_API_KEY environment variable."
+msgstr "ANTHROPIC_API_KEY ortam değişkeni kullanılıyor."
+
+#: src/ui/insights.rs:495
+msgid "No key yet."
+msgstr "Henüz anahtar yok."
+
+#: src/ui/insights.rs:498
+msgid ""
+"The system credential store is unavailable. Unlock it, or set "
+"ANTHROPIC_API_KEY."
+msgstr "Sistemin kimlik bilgisi deposu kullanılamıyor. Kilidini açın veya ANTHROPIC_API_KEY değişkenini ayarlayın."
+
+#: src/ui/insights.rs:535
+msgid "Save key"
+msgstr "Anahtarı kaydet"
+
+#: src/ui/insights.rs:544
+msgid "Remove key"
+msgstr "Anahtarı kaldır"
+
+#: src/ui/insights.rs:553
+msgid "Create a key in the Anthropic Console"
+msgstr "Anthropic Console’da bir anahtar oluşturun"

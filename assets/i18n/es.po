@@ -3185,3 +3185,134 @@ msgstr "En Windows en ARM, el OpenGL con el que Spotifast dibuja viene del OpenC
 
 #~ msgid "Reduce lyrics motion"
 #~ msgstr "Reducir movimiento de la letra"
+
+#: src/ui/insights.rs:23
+msgid "AI insights"
+msgstr "Información con IA"
+
+#: src/ui/insights.rs:112
+msgid "The answer was cut short."
+msgstr "La respuesta quedó incompleta."
+
+#: src/ui/insights.rs:136
+msgid "Song"
+msgstr "Canción"
+
+#. Translators: {name} is an album, artist or song name.
+#: src/ui/insights.rs:180
+#, rust-format
+msgid "Researching “{name}”…"
+msgstr "Investigando «{name}»…"
+
+#: src/ui/insights.rs:187
+msgid ""
+"Claude is checking MusicBrainz credits and the web. This can take a minute."
+msgstr "Claude está revisando los créditos de MusicBrainz y la web. Puede tardar un minuto."
+
+#: src/ui/insights.rs:201
+msgid ""
+"AI insights are written by Claude with your own Anthropic API key. Add one "
+"in Settings to start."
+msgstr "Claude escribe la información con IA usando tu propia clave de API de Anthropic. Añade una en Ajustes para empezar."
+
+#: src/ui/insights.rs:206
+msgid "Anthropic rejected the API key. Check it in Settings."
+msgstr "Anthropic rechazó la clave de API. Revísala en Ajustes."
+
+#: src/ui/insights.rs:211
+msgid "Anthropic is limiting requests from this key. Try again in a minute."
+msgstr "Anthropic está limitando las solicitudes de esta clave. Vuelve a intentarlo en un minuto."
+
+#: src/ui/insights.rs:215
+msgid "Anthropic is busy right now. Try again shortly."
+msgstr "Anthropic está saturado en este momento. Vuelve a intentarlo en breve."
+
+#: src/ui/insights.rs:217
+msgid "Claude declined to write about this item."
+msgstr "Claude prefirió no escribir sobre este elemento."
+
+#: src/ui/insights.rs:218
+msgid "Claude returned an empty answer. Try again."
+msgstr "Claude devolvió una respuesta vacía. Vuelve a intentarlo."
+
+#: src/ui/insights.rs:219
+msgid "AI insights need a network connection."
+msgstr "La información con IA necesita conexión a la red."
+
+#. Translators: {error} is a network error message.
+#: src/ui/insights.rs:221
+#, rust-format
+msgid "Couldn't reach Anthropic: {error}"
+msgstr "No se pudo conectar con Anthropic: {error}"
+
+#. Translators: {error} is the error Anthropic reported.
+#: src/ui/insights.rs:230
+#, rust-format
+msgid "Anthropic returned an error: {error}"
+msgstr "Anthropic devolvió un error: {error}"
+
+#: src/ui/insights.rs:252
+msgid "Open Settings"
+msgstr "Abrir Ajustes"
+
+#: src/ui/insights.rs:280
+msgid "Regenerate"
+msgstr "Regenerar"
+
+#: src/ui/insights.rs:295
+msgid ""
+"Written by Claude from MusicBrainz credits and web search. It can make "
+"mistakes."
+msgstr "Escrito por Claude a partir de los créditos de MusicBrainz y búsquedas web. Puede contener errores."
+
+#. Translators: {date} is a date in YYYY-MM-DD form.
+#: src/ui/insights.rs:313
+#, rust-format
+msgid "Saved {date}"
+msgstr "Guardado el {date}"
+
+#. Translators: {date} is a date in YYYY-MM-DD form.
+#: src/ui/insights.rs:316
+#, rust-format
+msgid "Written {date}"
+msgstr "Escrito el {date}"
+
+#: src/ui/insights.rs:463 src/ui/insights.rs:472
+msgid "Anthropic API key"
+msgstr "Clave de API de Anthropic"
+
+#: src/ui/insights.rs:475
+msgid ""
+"Claude writes the insights with your own key. Each new insight is a paid "
+"request to Anthropic. The key is kept in the system credential store."
+msgstr "Claude escribe la información con tu propia clave. Cada nueva consulta es una solicitud de pago a Anthropic. La clave se guarda en el almacén de credenciales del sistema."
+
+#: src/ui/insights.rs:491
+msgid "A key is saved in the system credential store."
+msgstr "Hay una clave guardada en el almacén de credenciales del sistema."
+
+#: src/ui/insights.rs:493
+msgid "Using the ANTHROPIC_API_KEY environment variable."
+msgstr "Usando la variable de entorno ANTHROPIC_API_KEY."
+
+#: src/ui/insights.rs:495
+msgid "No key yet."
+msgstr "Todavía no hay ninguna clave."
+
+#: src/ui/insights.rs:498
+msgid ""
+"The system credential store is unavailable. Unlock it, or set "
+"ANTHROPIC_API_KEY."
+msgstr "El almacén de credenciales del sistema no está disponible. Desbloquéalo o define ANTHROPIC_API_KEY."
+
+#: src/ui/insights.rs:535
+msgid "Save key"
+msgstr "Guardar clave"
+
+#: src/ui/insights.rs:544
+msgid "Remove key"
+msgstr "Quitar clave"
+
+#: src/ui/insights.rs:553
+msgid "Create a key in the Anthropic Console"
+msgstr "Crea una clave en la consola de Anthropic"

@@ -362,6 +362,7 @@ fn artist_actions(app: &mut App, ui: &mut egui::Ui, artist: &Artist) {
         {
             app.actions.push(Action::ToggleSaved(artist.uri.clone()));
         }
+        super::insights::button(app, ui, &artist.uri, &artist.name);
         let more = theme::icon_button(
             ui,
             Icon::Ellipsis,

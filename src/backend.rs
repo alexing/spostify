@@ -679,6 +679,8 @@ pub enum Command {
     },
     /// The words of a track, from LRCLIB.
     Lyrics(Box<LyricsRequest>),
+    /// AI insights work: a briefing, or the API key. See `crate::insights`.
+    Insights(Box<crate::insights::Job>),
     /// The account's playlist tree, folders and all, from the session.
     Rootlist,
     /// Internal: a rootlist read completed for this signed-in session.
@@ -801,6 +803,7 @@ pub enum Event {
         uri: String,
         result: Result<Option<crate::lyrics::Lyrics>, String>,
     },
+    Insights(Box<crate::insights::Outcome>),
     /// The account's playlist tree, folders and all, and which of its
     /// playlists take songs from this account.
     Rootlist {
@@ -1888,6 +1891,16 @@ impl Worker {
                     });
                 }
                 Command::Lyrics(request) => self.fetch_lyrics(*request),
+                Command::Insights(job) => {
+                    let (http, events, waker) =
+                        (self.http.client(), self.events.clone(), self.waker.clone());
+                    let cache = crate::insights::cache_dir(&self.dirs);
+                    tokio::spawn(async move {
+                        let outcome = crate::insights::run(*job, http, cache).await;
+                        let _ = events.send(Event::Insights(Box::new(outcome)));
+                        waker.wake();
+                    });
+                }
                 Command::Rootlist => self.fetch_rootlist(),
                 Command::RootlistFinished { generation, result } => {
                     self.on_rootlist_finished(generation, result);
