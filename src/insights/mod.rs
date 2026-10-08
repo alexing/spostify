@@ -386,29 +386,53 @@ pub struct State {
     /// The key being typed in Settings; cleared once handed to the store.
     pub key_draft: String,
     next_request: u64,
+    /// Briefings being written: kind, id, language and request. Opening
+    /// the same item again joins its request instead of paying for another.
+    in_flight: Vec<(Kind, String, String, u64)>,
 }
 
 impl State {
-    /// Shows `subject` as loading and returns the request for it.
-    pub fn begin(&mut self, subject: Subject, locale: crate::i18n::Locale, force: bool) -> Request {
+    /// Shows `subject` as loading and returns the request to send for it,
+    /// or `None` when the same briefing is already being written.
+    pub fn begin(
+        &mut self,
+        subject: Subject,
+        locale: crate::i18n::Locale,
+        force: bool,
+    ) -> Option<Request> {
+        let tag = locale.tag();
+        let pending = self.in_flight.iter().find(|(kind, id, language, _)| {
+            *kind == subject.kind && *id == subject.id && language == tag
+        });
+        if let Some(&(.., request)) = pending.filter(|_| !force) {
+            self.panel = Some(Panel {
+                request,
+                subject,
+                status: Status::Loading,
+            });
+            return None;
+        }
         self.next_request += 1;
         let id = self.next_request;
+        self.in_flight
+            .push((subject.kind, subject.id.clone(), tag.to_string(), id));
         self.panel = Some(Panel {
             request: id,
             subject: subject.clone(),
             status: Status::Loading,
         });
-        Request {
+        Some(Request {
             id,
             subject,
-            language_tag: locale.tag().to_string(),
+            language_tag: tag.to_string(),
             language_name: language_name(locale),
             force,
-        }
+        })
     }
 
     /// Applies an answer, unless the panel has moved on since.
     pub fn finish(&mut self, id: u64, result: Result<Insight, Error>) {
+        self.in_flight.retain(|&(.., request)| request != id);
         if let Some(panel) = self.panel.as_mut().filter(|panel| panel.request == id) {
             panel.status = match result {
                 Ok(insight) => Status::Ready(insight),
@@ -498,8 +522,12 @@ mod tests {
     fn late_answers_for_an_earlier_panel_are_ignored() {
         let mut state = State::default();
         let subject = Subject::from_uri("spotify:album:a", "A").unwrap();
-        let first = state.begin(subject.clone(), crate::i18n::Locale::Spanish, false);
-        let second = state.begin(subject, crate::i18n::Locale::Spanish, true);
+        let first = state
+            .begin(subject.clone(), crate::i18n::Locale::Spanish, false)
+            .unwrap();
+        let second = state
+            .begin(subject, crate::i18n::Locale::Spanish, true)
+            .unwrap();
         assert!(second.force);
         assert_eq!(second.language_tag, "es");
         state.finish(first.id, Err(Error::Empty));
@@ -512,6 +540,34 @@ mod tests {
             state.panel.as_ref().unwrap().status,
             Status::Failed(Error::Refused)
         ));
+    }
+
+    #[test]
+    fn reopening_an_item_being_written_joins_its_request() {
+        let mut state = State::default();
+        let album = Subject::from_uri("spotify:album:a", "A").unwrap();
+        let other = Subject::from_uri("spotify:album:b", "B").unwrap();
+        let spanish = crate::i18n::Locale::Spanish;
+        let first = state.begin(album.clone(), spanish, false).unwrap();
+        // The listener looks at another album, then comes back.
+        let second = state.begin(other, spanish, false).unwrap();
+        assert!(state.begin(album.clone(), spanish, false).is_none());
+        assert_eq!(state.panel.as_ref().unwrap().request, first.id);
+        // Another language is another briefing.
+        assert!(
+            state
+                .begin(album.clone(), crate::i18n::Locale::French, false)
+                .is_some()
+        );
+        state.begin(album.clone(), spanish, false);
+        state.finish(second.id, Err(Error::Empty));
+        state.finish(first.id, Err(Error::Refused));
+        assert!(matches!(
+            state.panel.as_ref().unwrap().status,
+            Status::Failed(Error::Refused)
+        ));
+        // Once answered, opening it asks again (and reads the cache).
+        assert!(state.begin(album, spanish, false).is_some());
     }
 
     #[test]

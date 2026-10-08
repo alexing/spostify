@@ -63,7 +63,9 @@ impl App {
     }
 
     fn request_insight(&mut self, subject: Subject, force: bool) {
-        let request = self.insights.begin(subject, self.locale, force);
+        let Some(request) = self.insights.begin(subject, self.locale, force) else {
+            return;
+        };
         if self.offline {
             #[cfg(any(test, feature = "demo"))]
             let result = Ok(insights::demo::insight(&request.subject));
