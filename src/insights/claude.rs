@@ -19,8 +19,10 @@ const API_VERSION: &str = "2023-06-01";
 /// model instead of returning the refusal.
 const BETA: &str = "server-side-fallback-2026-07-01";
 const MAX_TOKENS: u32 = 16_000;
-/// Searching the web and writing can take a while.
-const TIMEOUT: Duration = Duration::from_secs(180);
+/// Searching the web and writing can take several minutes, and a request
+/// cut off by the deadline is still paid for. Ten minutes is the official
+/// SDKs' default.
+const TIMEOUT: Duration = Duration::from_secs(600);
 /// How many times a paused turn is resumed before giving up on more.
 const MAX_CONTINUATIONS: usize = 5;
 /// Retries after an overloaded or failing server.
@@ -128,12 +130,22 @@ pub fn text_of(content: &[Value]) -> String {
 
 /// Writes the briefing for `prompt`, resuming paused turns.
 pub async fn generate(http: &reqwest::Client, key: &str, prompt: &str) -> Result<Answer, Error> {
+    generate_at(http, URL, key, prompt).await
+}
+
+/// [`generate`] against `url`, which tests point at a local server.
+async fn generate_at(
+    http: &reqwest::Client,
+    url: &str,
+    key: &str,
+    prompt: &str,
+) -> Result<Answer, Error> {
     let user = user_message(prompt);
     let mut produced: Vec<Value> = Vec::new();
     let mut text = String::new();
     let mut messages = vec![user.clone()];
     for _ in 0..=MAX_CONTINUATIONS {
-        let body = send(http, key, &request_body(&messages)).await?;
+        let body = send(http, url, key, &request_body(&messages)).await?;
         match parse_response(&body)? {
             Turn::Refused => return Err(Error::Refused),
             Turn::Done {
@@ -166,12 +178,12 @@ fn finish(text: String, truncated: bool) -> Result<Answer, Error> {
 }
 
 /// One request, retried for rate limits and overloaded servers.
-async fn send(http: &reqwest::Client, key: &str, body: &Value) -> Result<Value, Error> {
+async fn send(http: &reqwest::Client, url: &str, key: &str, body: &Value) -> Result<Value, Error> {
     let mut server_retries = 0;
     let mut waited_for_rate_limit = false;
     loop {
         let response = http
-            .post(URL)
+            .post(url)
             .timeout(TIMEOUT)
             .header("x-api-key", key)
             .header("anthropic-version", API_VERSION)
@@ -437,6 +449,238 @@ mod tests {
             finish(" ok ".into(), true),
             Ok(Answer {
                 text: "ok".into(),
+                truncated: true
+            })
+        );
+    }
+
+    // ---- against a local server ------------------------------------------
+
+    /// One request as the server saw it.
+    struct Seen {
+        method: String,
+        path: String,
+        /// Header names in lower case.
+        headers: Vec<(String, String)>,
+        body: Value,
+    }
+
+    impl Seen {
+        fn header(&self, name: &str) -> Option<&str> {
+            self.headers
+                .iter()
+                .find(|(key, _)| key == name)
+                .map(|(_, value)| value.as_str())
+        }
+    }
+
+    /// A canned answer: status, extra headers, JSON body.
+    type Reply = (u16, Vec<(&'static str, &'static str)>, Value);
+
+    /// Serves `replies` in order, one connection each, and records what
+    /// arrived. Returns the messages URL and the record.
+    async fn serve(replies: Vec<Reply>) -> (String, std::sync::Arc<std::sync::Mutex<Vec<Seen>>>) {
+        use tokio::io::{AsyncReadExt, AsyncWriteExt};
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let url = format!("http://{}/v1/messages", listener.local_addr().unwrap());
+        let seen = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+        let record = seen.clone();
+        tokio::spawn(async move {
+            for (status, headers, body) in replies {
+                let (mut socket, _) = listener.accept().await.unwrap();
+                let mut raw = Vec::new();
+                let mut buffer = [0u8; 8192];
+                let split = loop {
+                    let read = socket.read(&mut buffer).await.unwrap();
+                    assert!(read > 0, "the client hung up mid-request");
+                    raw.extend_from_slice(&buffer[..read]);
+                    if let Some(at) = raw.windows(4).position(|w| w == b"\r\n\r\n") {
+                        break at;
+                    }
+                };
+                let head = String::from_utf8(raw[..split].to_vec()).unwrap();
+                let mut lines = head.split("\r\n");
+                let mut start = lines.next().unwrap().split(' ');
+                let method = start.next().unwrap().to_string();
+                let path = start.next().unwrap().to_string();
+                let headers_in: Vec<(String, String)> = lines
+                    .filter_map(|line| line.split_once(':'))
+                    .map(|(k, v)| (k.trim().to_ascii_lowercase(), v.trim().to_string()))
+                    .collect();
+                let length: usize = headers_in
+                    .iter()
+                    .find(|(k, _)| k == "content-length")
+                    .map(|(_, v)| v.parse().unwrap())
+                    .expect("the body has a length");
+                let mut body_in = raw[split + 4..].to_vec();
+                while body_in.len() < length {
+                    let read = socket.read(&mut buffer).await.unwrap();
+                    body_in.extend_from_slice(&buffer[..read]);
+                }
+                record.lock().unwrap().push(Seen {
+                    method,
+                    path,
+                    headers: headers_in,
+                    body: serde_json::from_slice(&body_in).unwrap(),
+                });
+                let text = body.to_string();
+                let mut response = format!(
+                    "HTTP/1.1 {status} X\r\ncontent-type: application/json\r\ncontent-length: {}\r\nconnection: close\r\n",
+                    text.len()
+                );
+                for (name, value) in headers {
+                    response.push_str(&format!("{name}: {value}\r\n"));
+                }
+                response.push_str("\r\n");
+                response.push_str(&text);
+                socket.write_all(response.as_bytes()).await.unwrap();
+                socket.shutdown().await.ok();
+            }
+        });
+        (url, seen)
+    }
+
+    /// A client that reaches the local server even behind a proxy.
+    fn local() -> reqwest::Client {
+        reqwest::Client::builder().no_proxy().build().unwrap()
+    }
+
+    fn reply(stop_reason: &str, content: Value) -> Reply {
+        (
+            200,
+            Vec::new(),
+            json!({
+                "id": "msg_1", "type": "message", "role": "assistant",
+                "model": MODEL, "stop_reason": stop_reason, "stop_details": null,
+                "content": content,
+            }),
+        )
+    }
+
+    #[tokio::test]
+    async fn paused_turns_are_resumed_with_everything_produced_so_far() {
+        let first = json!([
+            { "type": "thinking", "thinking": "", "signature": "sig-1" },
+            { "type": "text", "text": "Sign o' the Times is " },
+            { "type": "server_tool_use", "id": "srvtoolu_1", "name": "web_search", "input": { "query": "Sign o' the Times producer" } }
+        ]);
+        let second = json!([
+            { "type": "web_search_tool_result", "tool_use_id": "srvtoolu_1", "content": [
+                { "type": "web_search_result", "url": "https://example.org", "title": "x", "encrypted_content": "e" }
+            ] },
+            { "type": "text", "text": "a 1987 double album" },
+            { "type": "server_tool_use", "id": "srvtoolu_2", "name": "web_search", "input": { "query": "reception" } }
+        ]);
+        let last = json!([
+            { "type": "web_search_tool_result", "tool_use_id": "srvtoolu_2", "content": [] },
+            { "type": "text", "text": " produced by **Prince**." }
+        ]);
+        let (url, seen) = serve(vec![
+            reply("pause_turn", first.clone()),
+            reply("pause_turn", second.clone()),
+            reply("end_turn", last),
+        ])
+        .await;
+        let answer = generate_at(&local(), &url, "sk-ant-test", "About this album")
+            .await
+            .unwrap();
+        assert_eq!(
+            answer,
+            Answer {
+                text: "Sign o' the Times is a 1987 double album produced by **Prince**.".into(),
+                truncated: false
+            }
+        );
+
+        let seen = seen.lock().unwrap();
+        assert_eq!(seen.len(), 3);
+        for request in seen.iter() {
+            assert_eq!(request.method, "POST");
+            assert_eq!(request.path, "/v1/messages");
+            assert_eq!(request.header("x-api-key"), Some("sk-ant-test"));
+            assert_eq!(request.header("anthropic-version"), Some("2023-06-01"));
+            assert_eq!(
+                request.header("anthropic-beta"),
+                Some("server-side-fallback-2026-07-01")
+            );
+            assert_eq!(request.header("content-type"), Some("application/json"));
+            assert!(request.header("authorization").is_none());
+        }
+        let user = json!({ "role": "user", "content": "About this album" });
+        assert_eq!(seen[0].body, request_body(std::slice::from_ref(&user)));
+        // Each resumption repeats the question and every block so far,
+        // unchanged, as one assistant turn, with no new user message.
+        let mut so_far: Vec<Value> = first.as_array().unwrap().clone();
+        assert_eq!(
+            seen[1].body["messages"],
+            json!([user, { "role": "assistant", "content": so_far }])
+        );
+        so_far.extend(second.as_array().unwrap().iter().cloned());
+        assert_eq!(
+            seen[2].body,
+            request_body(&[
+                user.clone(),
+                json!({ "role": "assistant", "content": so_far })
+            ])
+        );
+    }
+
+    #[tokio::test]
+    async fn a_rate_limit_waits_for_retry_after_once() {
+        let limited: Reply = (
+            429,
+            vec![("retry-after", "1")],
+            json!({ "type": "error", "error": { "type": "rate_limit_error", "message": "slow down" } }),
+        );
+        let (url, seen) = serve(vec![
+            limited.clone(),
+            reply("end_turn", json!([{ "type": "text", "text": "ok" }])),
+        ])
+        .await;
+        let started = std::time::Instant::now();
+        let answer = generate_at(&local(), &url, "k", "q").await;
+        assert_eq!(answer.unwrap().text, "ok");
+        assert!(started.elapsed() >= Duration::from_secs(1));
+        assert_eq!(seen.lock().unwrap().len(), 2);
+
+        let quick: Reply = (429, vec![("retry-after", "0")], limited.2.clone());
+        let (url, seen) = serve(vec![quick.clone(), quick]).await;
+        let answer = generate_at(&local(), &url, "k", "q").await;
+        assert_eq!(answer, Err(Error::RateLimited));
+        assert_eq!(seen.lock().unwrap().len(), 2);
+    }
+
+    #[tokio::test]
+    async fn a_rejected_key_is_reported_without_the_key() {
+        let rejected: Reply = (
+            401,
+            Vec::new(),
+            json!({ "type": "error", "error": { "type": "authentication_error", "message": "invalid x-api-key" } }),
+        );
+        let (url, _) = serve(vec![rejected]).await;
+        let error = generate_at(&local(), &url, "sk-ant-secret", "q")
+            .await
+            .unwrap_err();
+        assert_eq!(error, Error::InvalidKey);
+        assert!(!format!("{error} {error:?}").contains("sk-ant-secret"));
+    }
+
+    #[tokio::test]
+    async fn a_refusal_and_a_cut_off_answer_are_reported() {
+        let (url, _) = serve(vec![
+            reply("refusal", json!([])),
+            reply("max_tokens", json!([{ "type": "text", "text": "Half" }])),
+        ])
+        .await;
+        let http = local();
+        assert_eq!(
+            generate_at(&http, &url, "k", "q").await,
+            Err(Error::Refused)
+        );
+        assert_eq!(
+            generate_at(&http, &url, "k", "q").await,
+            Ok(Answer {
+                text: "Half".into(),
                 truncated: true
             })
         );
