@@ -71,6 +71,9 @@ pub struct Subject {
     /// The album a song is on.
     pub album: Option<String>,
     pub release_date: Option<String>,
+    /// Spotify's `album_type` for an album: "album", "single" or
+    /// "compilation". It tells an album from a single of the same name.
+    pub album_type: Option<String>,
     pub label: Option<String>,
     pub genres: Vec<String>,
     /// An album's songs, or an artist's most played ones.
@@ -90,6 +93,7 @@ impl Subject {
             artists: Vec::new(),
             album: None,
             release_date: None,
+            album_type: None,
             label: None,
             genres: Vec::new(),
             tracks: Vec::new(),
@@ -112,6 +116,7 @@ impl Subject {
             artists: album.artists.iter().map(|a| a.name.clone()).collect(),
             album: None,
             release_date: album.release_date.clone(),
+            album_type: album.album_type.clone(),
             label: album.label.clone().filter(|label| !label.trim().is_empty()),
             genres: album.genres.clone(),
             tracks: tracks.iter().map(|track| track.name.clone()).collect(),
@@ -128,6 +133,7 @@ impl Subject {
             artists: Vec::new(),
             album: None,
             release_date: None,
+            album_type: None,
             label: None,
             genres: artist.genres.clone(),
             tracks: top_tracks.iter().map(|track| track.name.clone()).collect(),
@@ -147,6 +153,7 @@ impl Subject {
                 .album
                 .as_ref()
                 .and_then(|album| album.release_date.clone()),
+            album_type: None,
             label: track.album.as_ref().and_then(|album| album.label.clone()),
             genres: Vec::new(),
             tracks: Vec::new(),

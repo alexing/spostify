@@ -58,7 +58,7 @@ pub async fn lookup(http: &reqwest::Client, subject: &Subject) -> Result<Option<
     match subject.kind {
         Kind::Album => {
             let query = release_query(subject);
-            let found = get(http, "release", &[("query", &query), ("limit", "25")]).await?;
+            let found = get(http, "release", &[("query", &query), ("limit", "100")]).await?;
             let Some(id) = best_release(&found, subject) else {
                 return Ok(None);
             };
@@ -74,9 +74,27 @@ pub async fn lookup(http: &reqwest::Client, subject: &Subject) -> Result<Option<
             Ok(Some(release_credits(&release)))
         }
         Kind::Track => {
-            let query = recording_query(subject);
-            let found = get(http, "recording", &[("query", &query), ("limit", "25")]).await?;
-            let Some(id) = best_recording(&found, subject) else {
+            // The ISRC names the exact recording when MusicBrainz has it;
+            // many are missing there, so the name is asked next.
+            let mut id = None;
+            if let Some(query) = isrc_query(subject) {
+                let found = get(http, "recording", &[("query", &query), ("limit", "25")]).await?;
+                id = best_recording(&found, subject);
+            }
+            for query in [
+                album_recording_query(subject),
+                Some(recording_query(subject)),
+            ]
+            .into_iter()
+            .flatten()
+            {
+                if id.is_some() {
+                    break;
+                }
+                let found = get(http, "recording", &[("query", &query), ("limit", "100")]).await?;
+                id = best_recording(&found, subject);
+            }
+            let Some(id) = id else {
                 return Ok(None);
             };
             let recording = get(
@@ -154,32 +172,59 @@ fn phrase(text: &str) -> String {
     format!("\"{escaped}\"")
 }
 
+/// A title as a search term: the exact phrase weighs most, but any of its
+/// words may match, so a title MusicBrainz spells with a symbol (Prince's
+/// "Sign “☮︎” the Times") is still found.
+fn title_terms(field: &str, title: &str) -> String {
+    let cleaned = crate::lyrics::clean_title(title);
+    let words = normalize(&cleaned);
+    if words.is_empty() {
+        return format!("{field}:{}", phrase(&cleaned));
+    }
+    format!("{field}:(\"{words}\"^4 OR ({words}))")
+}
+
 fn release_query(subject: &Subject) -> String {
-    let mut query = format!(
-        "release:{}",
-        phrase(&crate::lyrics::clean_title(&subject.name))
-    );
+    let mut query = title_terms("release", &subject.name);
     if let Some(artist) = subject.main_artist() {
         query.push_str(&format!(" AND artist:{}", phrase(artist)));
     }
     query
 }
 
-fn recording_query(subject: &Subject) -> String {
-    if let Some(isrc) = subject
+fn isrc_query(subject: &Subject) -> Option<String> {
+    subject
         .isrc
         .as_deref()
         .filter(|isrc| !isrc.is_empty() && isrc.chars().all(|c| c.is_ascii_alphanumeric()))
-    {
-        return format!("isrc:{isrc}");
-    }
-    let mut query = format!(
-        "recording:{}",
-        phrase(&crate::lyrics::clean_title(&subject.name))
-    );
+        .map(|isrc| format!("isrc:{isrc}"))
+}
+
+/// The song on the album Spotify has it on. This finds album versions
+/// with a disambiguation, such as "Purple Rain", which was recorded live.
+fn album_recording_query(subject: &Subject) -> Option<String> {
+    let album = subject
+        .album
+        .as_deref()
+        .filter(|album| !album.trim().is_empty())?;
+    let mut query = title_terms("recording", &subject.name);
     if let Some(artist) = subject.main_artist() {
         query.push_str(&format!(" AND artist:{}", phrase(artist)));
     }
+    query.push_str(" AND ");
+    query.push_str(&title_terms("release", album));
+    Some(query)
+}
+
+/// Any recording of the song. Live recordings are left out: a popular song
+/// has hundreds, and they would crowd the studio original out of the
+/// results.
+fn recording_query(subject: &Subject) -> String {
+    let mut query = title_terms("recording", &subject.name);
+    if let Some(artist) = subject.main_artist() {
+        query.push_str(&format!(" AND artist:{}", phrase(artist)));
+    }
+    query.push_str(" AND -comment:live");
     query
 }
 
@@ -195,14 +240,24 @@ pub fn normalize(text: &str) -> String {
         .join(" ")
 }
 
-/// 2 for the same title, 1 when one contains the other, 0 otherwise.
+/// 3 for the same title, 2 for the same title once one-letter words are
+/// set aside (a symbol standing for a letter, as in "Sign “☮︎” the Times"),
+/// 1 when one contains the other, 0 otherwise.
 fn title_match(candidate: &str, wanted: &str) -> u8 {
     let candidate = normalize(candidate);
     let wanted = normalize(&crate::lyrics::clean_title(wanted));
     if candidate.is_empty() || wanted.is_empty() {
         return 0;
     }
+    let long_words = |text: &str| {
+        text.split(' ')
+            .filter(|word| word.chars().count() > 1)
+            .collect::<Vec<_>>()
+            .join(" ")
+    };
     if candidate == wanted {
+        3
+    } else if !long_words(&wanted).is_empty() && long_words(&candidate) == long_words(&wanted) {
         2
     } else if candidate.contains(&wanted) || wanted.contains(&candidate) {
         1
@@ -244,36 +299,47 @@ fn text<'a>(value: &'a Value, key: &str) -> &'a str {
     value.get(key).and_then(Value::as_str).unwrap_or_default()
 }
 
-/// A date for sorting: missing dates last.
+/// A date for sorting: missing dates last, and a bare year or month after
+/// a full date in the same period, since it is usually a vaguer copy.
 fn date_key(date: &str) -> String {
-    if date.is_empty() {
-        "9999".into()
-    } else {
-        date.to_string()
+    match date.len() {
+        0 => "9999".into(),
+        4 => format!("{date}-99-99"),
+        7 => format!("{date}-99"),
+        _ => date.to_string(),
     }
 }
 
-/// The best release among search results: the same title by the same
-/// artist, official over anything else, an album over a single, and then
-/// the earliest.
+/// Whether a release group's type is the kind of record Spotify says it
+/// is. Without Spotify's word, an album is assumed.
+fn type_match(release: &Value, subject: &Subject) -> bool {
+    let primary = release
+        .pointer("/release-group/primary-type")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    match subject.album_type.as_deref() {
+        Some("single") => primary == "Single" || primary == "EP",
+        _ => primary == "Album",
+    }
+}
+
+/// The best release among search results: official, the kind of record
+/// Spotify says it is, the same title by the same artist, then the
+/// earliest, then MusicBrainz's own order.
 pub fn best_release(results: &Value, subject: &Subject) -> Option<String> {
     let releases = results.get("releases")?.as_array()?;
     releases
         .iter()
-        .filter(|release| artist_match(release, subject))
-        .filter_map(|release| {
+        .enumerate()
+        .filter(|(_, release)| artist_match(release, subject))
+        .filter_map(|(index, release)| {
             let title = title_match(text(release, "title"), &subject.name);
             (title > 0).then(|| {
                 let official = text(release, "status") == "Official";
-                let album = release
-                    .pointer("/release-group/primary-type")
-                    .and_then(Value::as_str)
-                    == Some("Album");
-                let score = release.get("score").and_then(Value::as_u64).unwrap_or(0);
                 (
-                    (title, official, album),
+                    (official, type_match(release, subject), title),
                     std::cmp::Reverse(date_key(text(release, "date"))),
-                    score,
+                    std::cmp::Reverse(index),
                     text(release, "id"),
                 )
             })
@@ -284,22 +350,22 @@ pub fn best_release(results: &Value, subject: &Subject) -> Option<String> {
 }
 
 /// The best recording: the same title by the same artist, the studio
-/// original over a version with a disambiguation such as "live", and then
-/// the earliest released.
+/// original over a version with a disambiguation such as "live", then the
+/// earliest released, then MusicBrainz's own order.
 pub fn best_recording(results: &Value, subject: &Subject) -> Option<String> {
     let recordings = results.get("recordings")?.as_array()?;
     recordings
         .iter()
-        .filter(|recording| artist_match(recording, subject))
-        .filter_map(|recording| {
+        .enumerate()
+        .filter(|(_, recording)| artist_match(recording, subject))
+        .filter_map(|(index, recording)| {
             let title = title_match(text(recording, "title"), &subject.name);
             (title > 0).then(|| {
                 let plain = text(recording, "disambiguation").is_empty();
-                let score = recording.get("score").and_then(Value::as_u64).unwrap_or(0);
                 (
                     (title, plain),
                     std::cmp::Reverse(date_key(text(recording, "first-release-date"))),
-                    score,
+                    std::cmp::Reverse(index),
                     text(recording, "id"),
                 )
             })
@@ -309,23 +375,25 @@ pub fn best_recording(results: &Value, subject: &Subject) -> Option<String> {
         .filter(|id| !id.is_empty())
 }
 
-/// The best artist: the same name, then MusicBrainz's own score.
+/// The best artist: the same name, then MusicBrainz's own score and order.
 pub fn best_artist(results: &Value, subject: &Subject) -> Option<String> {
     let artists = results.get("artists")?.as_array()?;
+    let wanted = normalize(&subject.name);
     artists
         .iter()
-        .filter_map(|artist| {
+        .enumerate()
+        .filter_map(|(index, artist)| {
             let name = normalize(text(artist, "name"));
-            let wanted = normalize(&subject.name);
             let level = if name == wanted && !name.is_empty() {
                 2
-            } else if text(artist, "sort-name")
-                .split(',')
-                .rev()
-                .map(normalize)
-                .collect::<Vec<_>>()
-                .join(" ")
-                == wanted
+            } else if !wanted.is_empty()
+                && text(artist, "sort-name")
+                    .split(',')
+                    .rev()
+                    .map(normalize)
+                    .collect::<Vec<_>>()
+                    .join(" ")
+                    == wanted
             {
                 1
             } else {
@@ -333,11 +401,11 @@ pub fn best_artist(results: &Value, subject: &Subject) -> Option<String> {
             };
             (level > 0).then(|| {
                 let score = artist.get("score").and_then(Value::as_u64).unwrap_or(0);
-                (level, score, text(artist, "id"))
+                (level, score, std::cmp::Reverse(index), text(artist, "id"))
             })
         })
-        .max_by_key(|(level, score, _)| (*level, *score))
-        .map(|(_, _, id)| id.to_string())
+        .max_by_key(|(level, score, index, _)| (*level, *score, *index))
+        .map(|(_, _, _, id)| id.to_string())
         .filter(|id| !id.is_empty())
 }
 
@@ -583,7 +651,13 @@ pub fn artist_credits(artist: &Value) -> Credits {
         push_fact(&mut facts, "From", from.to_string());
     }
     if let Some(span) = artist.get("life-span") {
-        push_fact(&mut facts, "Active", years(span));
+        // A person's span is their life, not their career.
+        let label = if text(artist, "type") == "Person" {
+            "Life span"
+        } else {
+            "Active"
+        };
+        push_fact(&mut facts, label, years(span));
     }
     let mut albums: Vec<(String, String)> = artist
         .get("release-groups")
@@ -708,7 +782,7 @@ mod tests {
     }
 
     #[test]
-    fn queries_quote_and_escape_names() {
+    fn queries_weigh_the_phrase_and_escape_names() {
         let album = subject(
             Kind::Album,
             "Say \"Hi\" (Remastered 2011)",
@@ -716,17 +790,50 @@ mod tests {
         );
         assert_eq!(
             release_query(&album),
-            "release:\"Say \\\"Hi\\\"\" AND artist:\"Back\\\\slash\""
+            "release:(\"say hi\"^4 OR (say hi)) AND artist:\"Back\\\\slash\""
         );
+        let symbols = subject(Kind::Album, "\u{262e}", None);
+        assert_eq!(release_query(&symbols), "release:\"\u{262e}\"");
         let mut song = subject(Kind::Track, "It", Some("Prince"));
         assert_eq!(
             recording_query(&song),
-            "recording:\"It\" AND artist:\"Prince\""
+            "recording:(\"it\"^4 OR (it)) AND artist:\"Prince\" AND -comment:live"
+        );
+        assert_eq!(isrc_query(&song), None);
+        assert_eq!(album_recording_query(&song), None);
+        song.album = Some("Sign o' the Times".into());
+        assert_eq!(
+            album_recording_query(&song).as_deref(),
+            Some(
+                "recording:(\"it\"^4 OR (it)) AND artist:\"Prince\" \
+                 AND release:(\"sign o the times\"^4 OR (sign o the times))"
+            )
         );
         song.isrc = Some("USWB18700123".into());
-        assert_eq!(recording_query(&song), "isrc:USWB18700123");
+        assert_eq!(isrc_query(&song).as_deref(), Some("isrc:USWB18700123"));
         song.isrc = Some("bad isrc\"".into());
-        assert!(recording_query(&song).starts_with("recording:"));
+        assert_eq!(isrc_query(&song), None);
+    }
+
+    #[test]
+    fn a_symbol_for_a_letter_still_matches_and_albums_beat_singles() {
+        // MusicBrainz spells the album with a peace sign, the single with
+        // an O; Spotify spells both "Sign o' the Times".
+        let results = json!({ "releases": [
+            { "id": "single", "title": "Sign \u{201c}O\u{201d} the Times", "status": "Official",
+              "date": "1987-02-18", "artist-credit": credit("Prince"),
+              "release-group": { "primary-type": "Single" } },
+            { "id": "year-only", "title": "Sign \u{201c}\u{262e}\u{fe0e}\u{201d} the Times", "status": "Official",
+              "date": "1987", "artist-credit": credit("Prince"),
+              "release-group": { "primary-type": "Album" } },
+            { "id": "album", "title": "Sign \u{201c}\u{262e}\u{fe0e}\u{201d} the Times", "status": "Official",
+              "date": "1987-03-30", "artist-credit": credit("Prince"),
+              "release-group": { "primary-type": "Album" } }
+        ]});
+        let mut wanted = subject(Kind::Album, "Sign o' the Times", Some("Prince"));
+        assert_eq!(best_release(&results, &wanted).as_deref(), Some("album"));
+        wanted.album_type = Some("single".into());
+        assert_eq!(best_release(&results, &wanted).as_deref(), Some("single"));
     }
 
     #[test]
@@ -983,5 +1090,39 @@ mod tests {
     fn the_user_agent_identifies_the_app() {
         assert!(USER_AGENT.starts_with("Spotifast/"));
         assert!(USER_AGENT.ends_with("( https://github.com/alexing/spotifast )"));
+    }
+
+    /// Asks the real MusicBrainz for three well-known items and prints what
+    /// it finds. Run by hand: `cargo test --lib live_musicbrainz -- --ignored --nocapture`.
+    #[tokio::test]
+    #[ignore = "talks to musicbrainz.org"]
+    async fn live_musicbrainz() {
+        let http = reqwest::Client::new();
+        let mut album = subject(Kind::Album, "Sign o' the Times", Some("Prince"));
+        album.release_date = Some("1987-03-30".into());
+        album.album_type = Some("album".into());
+        let artist = subject(Kind::Artist, "Bonobo", None);
+        let mut song = subject(Kind::Track, "Purple Rain", Some("Prince"));
+        song.isrc = Some("USWB10400044".into());
+        song.album = Some("Purple Rain".into());
+        let by_name = subject(Kind::Track, "Purple Rain", Some("Prince"));
+        for (label, item) in [
+            ("album", &album),
+            ("artist", &artist),
+            ("song by ISRC", &song),
+            ("song by name", &by_name),
+        ] {
+            let credits = lookup(&http, item)
+                .await
+                .expect("MusicBrainz answered")
+                .unwrap_or_else(|| panic!("no match for the {label}"));
+            println!("== {label}: {}", credits.url);
+            for (key, value) in &credits.facts {
+                println!("  {key}: {value}");
+            }
+            for line in super::super::prompt::group(&credits.credits) {
+                println!("  - {line}");
+            }
+        }
     }
 }

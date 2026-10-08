@@ -226,6 +226,7 @@ mod tests {
             artists: vec!["Prince".into()],
             album: None,
             release_date: Some("1987-03-30".into()),
+            album_type: Some("album".into()),
             label: Some("Paisley Park".into()),
             genres: vec!["funk".into()],
             tracks: vec!["Sign o' the Times".into(), "Play in the Sunshine".into()],
