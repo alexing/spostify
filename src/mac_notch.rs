@@ -1574,7 +1574,7 @@ pub fn sync_state(enabled: bool, is_background: bool, track: Option<&NotchTrackI
 
         if let Some(t) = track {
             let title = if t.title.trim().is_empty() {
-                "Spotifast"
+                crate::brand::NAME
             } else {
                 &t.title
             };
@@ -1603,7 +1603,7 @@ pub fn sync_state(enabled: bool, is_background: bool, track: Option<&NotchTrackI
             update_artwork_path(ctrl, t.art_path.clone());
         } else {
             ctrl.title_field
-                .setStringValue(&NSString::from_str("Spotifast"));
+                .setStringValue(&NSString::from_str(crate::brand::NAME));
             ctrl.artist_field
                 .setStringValue(&NSString::from_str("Nothing playing"));
             update_time_labels(

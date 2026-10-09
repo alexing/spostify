@@ -22,10 +22,12 @@ use super::{Kind, Subject};
 
 const API: &str = "https://musicbrainz.org/ws/2";
 const SITE: &str = "https://musicbrainz.org";
+/// Names this fork honestly. `concat!` takes only literals, so the name is
+/// spelled out here rather than read from `crate::brand::NAME`.
 const USER_AGENT: &str = concat!(
-    "Spotifast/",
+    "Spostify/",
     env!("CARGO_PKG_VERSION"),
-    " ( https://github.com/alexing/spotifast )"
+    " ( https://github.com/alexing/spostify )"
 );
 /// A little over MusicBrainz's one request a second.
 const SPACING: Duration = Duration::from_millis(1100);
@@ -1138,8 +1140,8 @@ mod tests {
 
     #[test]
     fn the_user_agent_identifies_the_app() {
-        assert!(USER_AGENT.starts_with("Spotifast/"));
-        assert!(USER_AGENT.ends_with("( https://github.com/alexing/spotifast )"));
+        assert!(USER_AGENT.starts_with(&format!("{}/", crate::brand::NAME)));
+        assert!(USER_AGENT.ends_with("( https://github.com/alexing/spostify )"));
     }
 
     /// Asks the real MusicBrainz for three well-known items and prints what

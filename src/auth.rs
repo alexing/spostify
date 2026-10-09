@@ -462,9 +462,12 @@ main{{max-width:28rem;padding:2.5rem;border-radius:1.25rem;background:#181b20;bo
 
 fn success_page() -> String {
     page(
-        "Signed in to Spotifast",
+        &format!("Signed in to {}", crate::brand::NAME),
         "You're signed in",
-        "You can close this tab and go back to Spotifast.",
+        &format!(
+            "You can close this tab and go back to {}.",
+            crate::brand::NAME
+        ),
         "#1ed760",
     )
 }
@@ -473,7 +476,7 @@ fn failure_page(reason: &str) -> String {
     page(
         "Sign-in failed",
         "Sign-in didn't complete",
-        &format!("{reason}. Return to Spotifast and try again."),
+        &format!("{reason}. Return to {} and try again.", crate::brand::NAME),
         "#f5717f",
     )
 }

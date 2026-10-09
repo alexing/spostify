@@ -414,7 +414,7 @@ impl std::fmt::Debug for Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            device_name: "Spotifast".to_string(),
+            device_name: crate::brand::NAME.to_string(),
             bitrate: 320,
             normalisation: false,
             autoplay: true,
@@ -576,10 +576,20 @@ impl Settings {
                     Self::default()
                 });
                 settings.migrate_proxy(text);
+                settings.adopt_brand_device_name();
                 settings.proxy_password_legacy = !settings.proxy_password.is_empty();
                 settings
             }
             Err(_) => Self::default(),
+        }
+    }
+
+    /// A Connect name equal to upstream's old default was never chosen by
+    /// the user, so it follows the default and shows as [`crate::brand::NAME`].
+    /// The file keeps its format; the new name is written on the next save.
+    fn adopt_brand_device_name(&mut self) {
+        if self.device_name == crate::brand::UPSTREAM_NAME {
+            self.device_name = crate::brand::NAME.to_string();
         }
     }
 

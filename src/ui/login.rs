@@ -70,7 +70,7 @@ pub fn show(app: &mut App, ui: &mut egui::Ui, connecting: bool) {
                     let (logo, _) = ui.allocate_exact_size(Vec2::splat(72.0), egui::Sense::hover());
                     theme::logo(ui, logo.center(), 72.0);
                     ui.add_space(6.0);
-                    theme::text(ui, "Spotifast", theme::bold(30.0), palette.text);
+                    theme::text(ui, crate::brand::NAME, theme::bold(30.0), palette.text);
                     theme::text(ui, gettext(locale, "A native Spotify client."), theme::regular(14.5), palette.secondary);
                     ui.add_space(22.0);
                     match &app.auth {

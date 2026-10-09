@@ -394,6 +394,33 @@ mod mac_impl {
         item
     }
 
+    /// winit names About, Hide and Quit after the process, which is the
+    /// executable's internal name; show [`crate::brand::NAME`] instead.
+    fn show_brand_in_app_menu(app_menu: &NSMenu) {
+        // SAFETY: `+[NSProcessInfo processInfo]` and `-processName` take no
+        // arguments and return an object.
+        let process: Retained<NSString> = unsafe {
+            let info: Retained<NSObject> =
+                objc2::msg_send![objc2::class!(NSProcessInfo), processInfo];
+            objc2::msg_send![&info, processName]
+        };
+        let process = process.to_string();
+        for index in 0..app_menu.numberOfItems() {
+            let Some(item) = app_menu.itemAtIndex(index) else {
+                continue;
+            };
+            let title = item.title().to_string();
+            if let Some(action) = title.strip_suffix(process.as_str())
+                && action.ends_with(' ')
+            {
+                item.setTitle(&NSString::from_str(&format!(
+                    "{action}{}",
+                    crate::brand::NAME
+                )));
+            }
+        }
+    }
+
     fn create_menu(
         mtm: MainThreadMarker,
         title: &NSString,
@@ -450,6 +477,7 @@ mod mac_impl {
             app_menu.insertItem_atIndex(&update_item, 1);
             app_menu.insertItem_atIndex(&settings_item, 2);
             app_menu.insertItem_atIndex(&sep, 3);
+            show_brand_in_app_menu(&app_menu);
         }
 
         // 2. File menu

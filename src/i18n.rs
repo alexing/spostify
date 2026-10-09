@@ -2,7 +2,39 @@
 //! for every message a catalog has not translated yet. The interface follows
 //! the operating system's language unless Settings names another one.
 
-pub use fastframe_i18n::{gettext, ngettext, pgettext};
+use std::borrow::Cow;
+
+/// Translates `source`, showing this fork's name (see [`crate::brand`]).
+pub fn gettext(locale: Locale, source: &'static str) -> Cow<'static, str> {
+    rebrand(fastframe_i18n::gettext(locale, source))
+}
+
+/// Translates a phrase in `context`, showing this fork's name.
+pub fn pgettext(locale: Locale, context: &'static str, source: &'static str) -> Cow<'static, str> {
+    rebrand(fastframe_i18n::pgettext(locale, context, source))
+}
+
+/// Translates a phrase for `count`, showing this fork's name.
+pub fn ngettext(
+    locale: Locale,
+    singular: &'static str,
+    plural: &'static str,
+    count: u32,
+) -> Cow<'static, str> {
+    rebrand(fastframe_i18n::ngettext(locale, singular, plural, count))
+}
+
+/// The catalogs spell upstream's name in every language. Swapping it here,
+/// rather than in each catalog, leaves the catalogs as upstream ships them.
+/// Case-sensitive, so a lowercase address such as spotifast.rocks stays.
+/// Only a message that names the app is copied.
+fn rebrand(text: Cow<'static, str>) -> Cow<'static, str> {
+    if text.contains(crate::brand::UPSTREAM_NAME) {
+        Cow::Owned(text.replace(crate::brand::UPSTREAM_NAME, crate::brand::NAME))
+    } else {
+        text
+    }
+}
 
 include!(concat!(env!("OUT_DIR"), "/catalogs.rs"));
 
@@ -256,6 +288,20 @@ pub const LOCALES: &[Locale] = &[
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn every_language_shows_the_fork_name() {
+        assert_eq!(
+            gettext(Locale::English, "Update Spotifast"),
+            "Update Spostify"
+        );
+        assert_eq!(
+            gettext(Locale::Spanish, "Update Spotifast"),
+            "Actualizar Spostify"
+        );
+        // A message without the name is passed through, not copied.
+        assert!(matches!(gettext(Locale::English, "Home"), Cow::Borrowed(_)));
+    }
 
     #[test]
     fn missing_messages_use_the_english_source() {

@@ -259,7 +259,7 @@ fn desktop_entry() -> String {
 
 #[cfg(target_os = "linux")]
 const PULSEAUDIO_PROPERTIES: [(&str, &str); 2] = [
-    ("PULSE_PROP_application.name", "Spotifast"),
+    ("PULSE_PROP_application.name", spotifast::brand::NAME),
     ("PULSE_PROP_stream.description", "Spotify playback"),
 ];
 
@@ -773,7 +773,7 @@ fn native_options(
         app_icon()
     };
     let viewport = egui::ViewportBuilder::default()
-        .with_title("Spotifast")
+        .with_title(spotifast::brand::NAME)
         .with_app_id(app_id)
         .with_taskbar(true)
         .with_icon(icon);

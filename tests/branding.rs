@@ -96,7 +96,7 @@ fn existing_preferences_and_custom_connect_names_survive_a_save() {
 
     let scratch = Scratch::new();
     let path = scratch.0.join("settings.json");
-    for name in ["Spotifast", "Living room", "Carmine's laptop"] {
+    for name in [spotifast::brand::NAME, "Living room", "Carmine's laptop"] {
         let saved = Settings {
             device_name: name.into(),
             theme: ThemeChoice::Light,
@@ -110,7 +110,12 @@ fn existing_preferences_and_custom_connect_names_survive_a_save() {
         saved.save(&path);
         assert_eq!(Settings::load(&path), saved);
     }
-    assert_eq!(Settings::default().device_name, "Spotifast");
+    assert_eq!(Settings::default().device_name, spotifast::brand::NAME);
+    // Upstream's old default follows the default; it was never chosen.
+    std::fs::write(&path, r#"{"device_name": "Spotifast", "volume": 37}"#).unwrap();
+    let loaded = Settings::load(&path);
+    assert_eq!(loaded.device_name, spotifast::brand::NAME);
+    assert_eq!(loaded.volume, 37);
 }
 
 #[cfg(target_os = "linux")]
