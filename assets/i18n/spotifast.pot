@@ -3187,3 +3187,32 @@ msgstr ""
 #: src/ui/insights.rs:553
 msgid "Create a key in the Anthropic Console"
 msgstr ""
+
+#: src/ui/insights.rs:228
+msgid "Checking MusicBrainz credits…"
+msgstr ""
+
+#: src/ui/insights.rs:229
+msgid "Searching the web…"
+msgstr ""
+
+#: src/ui/insights.rs:230
+msgid "Claude is writing a quick overview."
+msgstr ""
+
+#: src/ui/insights.rs:247
+msgid "Writing…"
+msgstr ""
+
+#: src/ui/insights.rs:339
+msgid "Dig deeper"
+msgstr ""
+
+#. Translators: A tooltip on the Dig deeper button.
+#: src/ui/insights.rs:344
+msgid "A longer briefing that also searches the web. It takes about a minute."
+msgstr ""
+
+#: src/ui/insights.rs:368
+msgid "Written by Claude from MusicBrainz credits and its own knowledge. It can make mistakes."
+msgstr ""

@@ -3287,3 +3287,32 @@ msgstr "キーを削除"
 #: src/ui/insights.rs:553
 msgid "Create a key in the Anthropic Console"
 msgstr "Anthropic Console でキーを作成"
+
+#: src/ui/insights.rs:228
+msgid "Checking MusicBrainz credits…"
+msgstr "MusicBrainz のクレジットを確認中…"
+
+#: src/ui/insights.rs:229
+msgid "Searching the web…"
+msgstr "ウェブを検索中…"
+
+#: src/ui/insights.rs:230
+msgid "Claude is writing a quick overview."
+msgstr "Claude が簡単な概要を作成しています。"
+
+#: src/ui/insights.rs:247
+msgid "Writing…"
+msgstr "作成中…"
+
+#: src/ui/insights.rs:339
+msgid "Dig deeper"
+msgstr "さらに詳しく"
+
+#. Translators: A tooltip on the Dig deeper button.
+#: src/ui/insights.rs:344
+msgid "A longer briefing that also searches the web. It takes about a minute."
+msgstr "ウェブ検索も行う、より詳しい解説です。1 分ほどかかります。"
+
+#: src/ui/insights.rs:368
+msgid "Written by Claude from MusicBrainz credits and its own knowledge. It can make mistakes."
+msgstr "MusicBrainz のクレジットと Claude 自身の知識をもとに作成しました。誤りを含む場合があります。"

@@ -10,7 +10,7 @@ use crate::api::models::Track;
 use crate::app::App;
 use crate::i18n::{Locale, gettext};
 use crate::insights::markdown::{self, Block, Span};
-use crate::insights::{self, Error, Insight, KeyStatus, Kind, Status};
+use crate::insights::{self, Error, Insight, KeyStatus, Kind, Mode, Phase, Status};
 use crate::model::Action;
 use crate::theme::{self, Icon, Palette};
 
@@ -67,6 +67,12 @@ pub fn menu_item(app: &mut App, ui: &mut egui::Ui, uri: &str, name: &str, track:
 
 /// The briefing, over the window, while one is open.
 pub fn show(app: &mut App, ctx: &egui::Context) {
+    // The demo's sample plays in on the interface's clock, before anything
+    // is drawn; a real briefing arrives from the backend instead.
+    #[cfg(any(test, feature = "demo"))]
+    if app.insights.tick_demo(std::time::Instant::now()) {
+        ctx.request_repaint_after(std::time::Duration::from_millis(30));
+    }
     let Some(panel) = app.insights.panel.clone() else {
         return;
     };
@@ -96,12 +102,30 @@ pub fn show(app: &mut App, ctx: &egui::Context) {
             header(app, ui, &panel.subject);
             ui.add_space(14.0);
             let body_height = (screen.height() - 260.0).clamp(160.0, 620.0);
+            let streaming =
+                matches!(&panel.status, Status::Loading { text, .. } if !text.is_empty());
             egui::ScrollArea::vertical()
                 .id_salt(("ai-insights-body", panel.request))
                 .max_height(body_height)
                 .auto_shrink([false, true])
+                // While text arrives, follow it unless the listener has
+                // scrolled up to read.
+                .stick_to_bottom(streaming)
                 .show(ui, |ui| match &panel.status {
-                    Status::Loading => loading(ui, &palette, locale, &panel.subject.name),
+                    Status::Loading { phase, text } if text.is_empty() => {
+                        loading(
+                            ui,
+                            &palette,
+                            locale,
+                            &panel.subject.name,
+                            panel.mode,
+                            *phase,
+                        );
+                    }
+                    Status::Loading { phase, text } => {
+                        render(app, ui, text);
+                        activity(ui, &palette, locale, *phase);
+                    }
                     Status::Ready(insight) => {
                         render(app, ui, &insight.markdown);
                         if insight.truncated {
@@ -116,7 +140,7 @@ pub fn show(app: &mut App, ctx: &egui::Context) {
                     Status::Failed(error) => failure(app, ui, error),
                 });
             ui.add_space(14.0);
-            footer(app, ui, &panel.status);
+            footer(app, ui, panel.mode, &panel.status);
         });
     if response.should_close() {
         app.actions.push(Action::Insights(insights::Action::Close));
@@ -171,7 +195,15 @@ fn header(app: &mut App, ui: &mut egui::Ui, subject: &insights::Subject) {
     });
 }
 
-fn loading(ui: &mut egui::Ui, palette: &Palette, locale: Locale, name: &str) {
+/// Before the first words arrive.
+fn loading(
+    ui: &mut egui::Ui,
+    palette: &Palette,
+    locale: Locale,
+    name: &str,
+    mode: Mode,
+    phase: Phase,
+) {
     ui.add_space(24.0);
     ui.vertical_centered(|ui| {
         theme::spinner(ui, 28.0, palette.accent);
@@ -182,15 +214,40 @@ fn loading(ui: &mut egui::Ui, palette: &Palette, locale: Locale, name: &str) {
         ui.add_space(4.0);
         wrapped(
             ui,
-            &gettext(
-                locale,
-                "Claude is checking MusicBrainz credits and the web. This can take a minute.",
-            ),
+            &loading_detail(locale, mode, phase),
             theme::regular(13.0),
             palette.secondary,
         );
     });
     ui.add_space(24.0);
+}
+
+/// What the briefing is waiting on.
+fn loading_detail(locale: Locale, mode: Mode, phase: Phase) -> String {
+    match (phase, mode) {
+        (Phase::Credits, _) => gettext(locale, "Checking MusicBrainz credits…"),
+        (Phase::Searching, _) => gettext(locale, "Searching the web…"),
+        (Phase::Writing, Mode::Quick) => gettext(locale, "Claude is writing a quick overview."),
+        (Phase::Writing, Mode::Deep) => gettext(
+            locale,
+            "Claude is checking MusicBrainz credits and the web. This can take a minute.",
+        ),
+    }
+    .into_owned()
+}
+
+/// Below text still arriving: a small spinner, and what Claude is doing.
+fn activity(ui: &mut egui::Ui, palette: &Palette, locale: Locale, phase: Phase) {
+    ui.add_space(6.0);
+    ui.horizontal(|ui| {
+        ui.spacing_mut().item_spacing.x = 8.0;
+        theme::spinner(ui, 14.0, palette.accent);
+        let label = match phase {
+            Phase::Searching => gettext(locale, "Searching the web…"),
+            Phase::Credits | Phase::Writing => gettext(locale, "Writing…"),
+        };
+        theme::text(ui, label, theme::regular(12.5), palette.secondary);
+    });
 }
 
 /// What went wrong, and the way forward.
@@ -261,7 +318,7 @@ fn failure(app: &mut App, ui: &mut egui::Ui, error: &Error) {
     ui.add_space(8.0);
 }
 
-fn footer(app: &mut App, ui: &mut egui::Ui, status: &Status) {
+fn footer(app: &mut App, ui: &mut egui::Ui, mode: Mode, status: &Status) {
     let palette = app.palette;
     let locale = app.locale;
     ui.horizontal(|ui| {
@@ -271,16 +328,33 @@ fn footer(app: &mut App, ui: &mut egui::Ui, status: &Status) {
         };
         theme::text(ui, note_text, theme::regular(12.0), palette.dim);
         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-            let ready = matches!(status, Status::Ready(_));
-            if ready
+            if !matches!(status, Status::Ready(_)) {
+                return;
+            }
+            if mode == Mode::Quick
                 && theme::soft_button(
                     ui,
                     &palette,
-                    Some(Icon::Refresh),
-                    &gettext(locale, "Regenerate"),
-                    false,
+                    Some(Icon::Sparkles),
+                    &gettext(locale, "Dig deeper"),
+                    true,
                 )
+                .on_hover_text(gettext(
+                    locale,
+                    "A longer briefing that also searches the web. It takes about a minute.",
+                ))
                 .clicked()
+            {
+                app.actions.push(Action::Insights(insights::Action::Deepen));
+            }
+            if theme::soft_button(
+                ui,
+                &palette,
+                Some(Icon::Refresh),
+                &gettext(locale, "Regenerate"),
+                false,
+            )
+            .clicked()
             {
                 app.actions
                     .push(Action::Insights(insights::Action::Regenerate));
@@ -288,15 +362,17 @@ fn footer(app: &mut App, ui: &mut egui::Ui, status: &Status) {
         });
     });
     ui.add_space(6.0);
-    wrapped(
-        ui,
-        &gettext(
+    let disclaimer = match mode {
+        Mode::Quick => gettext(
+            locale,
+            "Written by Claude from MusicBrainz credits and its own knowledge. It can make mistakes.",
+        ),
+        Mode::Deep => gettext(
             locale,
             "Written by Claude from MusicBrainz credits and web search. It can make mistakes.",
         ),
-        theme::regular(11.5),
-        palette.dim,
-    );
+    };
+    wrapped(ui, &disclaimer, theme::regular(11.5), palette.dim);
 }
 
 /// "Written 2026-10-08", or "Saved 2026-10-08" for one from the cache.
@@ -598,6 +674,7 @@ mod tests {
             markdown: String::new(),
             created_at: 1_790_000_000,
             truncated: false,
+            mode: Mode::Quick,
             cached: true,
         };
         assert!(written_on(Locale::English, &insight).starts_with("Saved 2026-"));
@@ -606,5 +683,18 @@ mod tests {
             ..insight
         };
         assert!(written_on(Locale::English, &fresh).starts_with("Written 2026-"));
+    }
+
+    #[test]
+    fn every_phase_has_a_loading_message() {
+        for mode in [Mode::Quick, Mode::Deep] {
+            for phase in [Phase::Credits, Phase::Writing, Phase::Searching] {
+                assert!(!loading_detail(Locale::Spanish, mode, phase).is_empty());
+            }
+        }
+        assert_ne!(
+            loading_detail(Locale::English, Mode::Quick, Phase::Writing),
+            loading_detail(Locale::English, Mode::Deep, Phase::Writing)
+        );
     }
 }

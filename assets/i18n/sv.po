@@ -3297,3 +3297,32 @@ msgstr "Ta bort nyckel"
 #: src/ui/insights.rs:553
 msgid "Create a key in the Anthropic Console"
 msgstr "Skapa en nyckel i Anthropic Console"
+
+#: src/ui/insights.rs:228
+msgid "Checking MusicBrainz credits…"
+msgstr "Kontrollerar medverkande på MusicBrainz…"
+
+#: src/ui/insights.rs:229
+msgid "Searching the web…"
+msgstr "Söker på webben…"
+
+#: src/ui/insights.rs:230
+msgid "Claude is writing a quick overview."
+msgstr "Claude skriver en snabb översikt."
+
+#: src/ui/insights.rs:247
+msgid "Writing…"
+msgstr "Skriver…"
+
+#: src/ui/insights.rs:339
+msgid "Dig deeper"
+msgstr "Gräv djupare"
+
+#. Translators: A tooltip on the Dig deeper button.
+#: src/ui/insights.rs:344
+msgid "A longer briefing that also searches the web. It takes about a minute."
+msgstr "En längre text som även söker på webben. Det tar ungefär en minut."
+
+#: src/ui/insights.rs:368
+msgid "Written by Claude from MusicBrainz credits and its own knowledge. It can make mistakes."
+msgstr "Skrivet av Claude utifrån medverkande på MusicBrainz och egen kunskap. Kan innehålla fel."

@@ -3,20 +3,26 @@
 //! is only where it meets the app's state.
 
 use super::*;
-use crate::insights::{self, KeyStatus, Subject};
+use crate::insights::{self, KeyStatus, Mode, Subject};
 
 impl App {
     pub(crate) fn apply_insights(&mut self, action: insights::Action, ctx: &egui::Context) {
         match action {
             insights::Action::Open { uri, name, track } => {
                 if let Some(subject) = self.insight_subject(&uri, &name, track.as_deref()) {
-                    self.request_insight(subject, false);
+                    self.request_insight(subject, Mode::Quick, false);
                 }
             }
             insights::Action::Regenerate => {
                 if let Some(panel) = &self.insights.panel {
+                    let (subject, mode) = (panel.subject.clone(), panel.mode);
+                    self.request_insight(subject, mode, true);
+                }
+            }
+            insights::Action::Deepen => {
+                if let Some(panel) = &self.insights.panel {
                     let subject = panel.subject.clone();
-                    self.request_insight(subject, true);
+                    self.request_insight(subject, Mode::Deep, false);
                 }
             }
             insights::Action::Close => self.insights.panel = None,
@@ -42,6 +48,7 @@ impl App {
 
     pub(crate) fn receive_insights(&mut self, outcome: insights::Outcome) {
         match outcome {
+            insights::Outcome::Progress { id, progress } => self.insights.progress(id, progress),
             insights::Outcome::Generated { id, result } => {
                 if let Err(error) = &result {
                     log::info!("AI insight unavailable: {error}");
@@ -62,16 +69,21 @@ impl App {
         self.backend.send(Command::Insights(Box::new(job)));
     }
 
-    fn request_insight(&mut self, subject: Subject, force: bool) {
-        let Some(request) = self.insights.begin(subject, self.locale, force) else {
+    fn request_insight(&mut self, subject: Subject, mode: Mode, force: bool) {
+        let Some(request) = self.insights.begin(subject, self.locale, mode, force) else {
             return;
         };
         if self.offline {
+            // The demo plays a sample in as if it were being written.
             #[cfg(any(test, feature = "demo"))]
-            let result = Ok(insights::demo::insight(&request.subject));
+            self.insights.play_demo(
+                request.id,
+                insights::demo::insight(&request.subject, mode),
+                std::time::Instant::now(),
+            );
             #[cfg(not(any(test, feature = "demo")))]
-            let result = Err(insights::Error::Offline);
-            self.insights.finish(request.id, result);
+            self.insights
+                .finish(request.id, Err(insights::Error::Offline));
             return;
         }
         self.backend
@@ -183,9 +195,25 @@ mod tests {
             &ctx,
         );
         let panel = app.insights.panel.as_ref().expect("panel open");
+        assert!(matches!(&panel.status, Status::Loading { .. }));
+        assert_eq!(panel.mode, Mode::Quick);
+        let later = std::time::Instant::now() + std::time::Duration::from_secs(3600);
+        assert!(!app.insights.tick_demo(later));
+        let panel = app.insights.panel.as_ref().unwrap();
         assert!(
             matches!(&panel.status, Status::Ready(insight) if insight.markdown.contains("Sample"))
         );
+        // Digging deeper plays the longer sample.
+        app.apply(Action::Insights(insights::Action::Deepen), &ctx);
+        assert_eq!(app.insights.panel.as_ref().unwrap().mode, Mode::Deep);
+        assert!(!app.insights.tick_demo(later));
+        let panel = app.insights.panel.as_ref().unwrap();
+        assert!(
+            matches!(&panel.status, Status::Ready(insight) if insight.mode == Mode::Deep && insight.markdown.contains("## Sources"))
+        );
+        // Regenerating keeps the mode shown.
+        app.apply(Action::Insights(insights::Action::Regenerate), &ctx);
+        assert_eq!(app.insights.panel.as_ref().unwrap().mode, Mode::Deep);
         app.apply(Action::Insights(insights::Action::Close), &ctx);
         assert!(app.insights.panel.is_none());
     }

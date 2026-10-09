@@ -566,6 +566,19 @@ mod tests {
     }
 
     #[test]
+    fn every_partial_answer_parses() {
+        // While an answer streams in, the panel parses whatever has arrived,
+        // which can stop anywhere: mid-link, mid-bold, mid-character.
+        let answer = "Intro with **bold** and *it\u{e9}*.\n\n## Who \u{1f3b8}\n\
+            - **Produced by** [Prince](https://example.org/a_(b)) on `x`\n\
+            1. Opening track, https://example.org/x.\n> Quote\n---\n";
+        for (at, _) in answer.char_indices() {
+            let _ = parse(&answer[..at]);
+        }
+        assert!(!parse(answer).is_empty());
+    }
+
+    #[test]
     fn plain_text_drops_the_styling() {
         let spans = inline("**Prince** on [guitar](https://x.org)");
         assert_eq!(plain_text(&spans), "Prince on guitar");

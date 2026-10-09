@@ -3216,3 +3216,32 @@ msgstr "移除金鑰"
 #: src/ui/insights.rs:553
 msgid "Create a key in the Anthropic Console"
 msgstr "在 Anthropic Console 中建立金鑰"
+
+#: src/ui/insights.rs:228
+msgid "Checking MusicBrainz credits…"
+msgstr "正在檢查 MusicBrainz 製作人員資訊…"
+
+#: src/ui/insights.rs:229
+msgid "Searching the web…"
+msgstr "正在搜尋網路…"
+
+#: src/ui/insights.rs:230
+msgid "Claude is writing a quick overview."
+msgstr "Claude 正在撰寫簡要介紹。"
+
+#: src/ui/insights.rs:247
+msgid "Writing…"
+msgstr "正在撰寫…"
+
+#: src/ui/insights.rs:339
+msgid "Dig deeper"
+msgstr "深入了解"
+
+#. Translators: A tooltip on the Dig deeper button.
+#: src/ui/insights.rs:344
+msgid "A longer briefing that also searches the web. It takes about a minute."
+msgstr "更詳細的解讀，會同時搜尋網路，大約需要一分鐘。"
+
+#: src/ui/insights.rs:368
+msgid "Written by Claude from MusicBrainz credits and its own knowledge. It can make mistakes."
+msgstr "由 Claude 根據 MusicBrainz 製作人員資訊與自身知識撰寫，可能有誤。"

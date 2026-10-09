@@ -47,9 +47,11 @@ Spotifast connects only to the services below.
   album, artist or song, Spotifast looks up its name and artist on
   [musicbrainz.org](https://musicbrainz.org) for credits, then sends those
   details to Anthropic's API with your own key so Claude can write the
-  briefing, searching the web as it does. Anthropic's
-  [privacy policy](https://www.anthropic.com/legal/privacy) applies to that
-  request. Briefings are cached in the cache directory.
+  briefing. A quick briefing comes from those credits and Claude's own
+  knowledge; **Dig deeper** writes a longer one that also searches the web.
+  Anthropic's [privacy policy](https://www.anthropic.com/legal/privacy)
+  applies to those requests. Briefings and the MusicBrainz credits are cached
+  in the cache directory.
 - **GitHub.** Once a day, Spotifast asks GitHub for the latest release. You
   can turn automatic checks off in Settings. Downloading an update, and the
   first opening of MilkDrop, also fetch files from GitHub. No Spotify data is

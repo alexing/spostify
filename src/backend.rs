@@ -1896,9 +1896,12 @@ impl Worker {
                         (self.http.client(), self.events.clone(), self.waker.clone());
                     let cache = crate::insights::cache_dir(&self.dirs);
                     tokio::spawn(async move {
-                        let outcome = crate::insights::run(*job, http, cache).await;
-                        let _ = events.send(Event::Insights(Box::new(outcome)));
-                        waker.wake();
+                        let report = move |outcome| {
+                            let _ = events.send(Event::Insights(Box::new(outcome)));
+                            waker.wake();
+                        };
+                        let outcome = crate::insights::run(*job, http, cache, &report).await;
+                        report(outcome);
                     });
                 }
                 Command::Rootlist => self.fetch_rootlist(),

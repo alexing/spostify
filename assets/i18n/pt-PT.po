@@ -3315,3 +3315,32 @@ msgstr "Remover chave"
 #: src/ui/insights.rs:553
 msgid "Create a key in the Anthropic Console"
 msgstr "Crie uma chave na Consola da Anthropic"
+
+#: src/ui/insights.rs:228
+msgid "Checking MusicBrainz credits…"
+msgstr "A verificar os créditos do MusicBrainz…"
+
+#: src/ui/insights.rs:229
+msgid "Searching the web…"
+msgstr "A pesquisar na web…"
+
+#: src/ui/insights.rs:230
+msgid "Claude is writing a quick overview."
+msgstr "O Claude está a escrever um resumo rápido."
+
+#: src/ui/insights.rs:247
+msgid "Writing…"
+msgstr "A escrever…"
+
+#: src/ui/insights.rs:339
+msgid "Dig deeper"
+msgstr "Aprofundar"
+
+#. Translators: A tooltip on the Dig deeper button.
+#: src/ui/insights.rs:344
+msgid "A longer briefing that also searches the web. It takes about a minute."
+msgstr "Um texto mais completo que também pesquisa na web. Demora cerca de um minuto."
+
+#: src/ui/insights.rs:368
+msgid "Written by Claude from MusicBrainz credits and its own knowledge. It can make mistakes."
+msgstr "Escrito pelo Claude a partir dos créditos do MusicBrainz e do seu próprio conhecimento. Pode conter erros."

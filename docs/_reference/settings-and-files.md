@@ -28,7 +28,7 @@ Spotifast follows each platform's conventions. On Linux:
 | Audio cache | `~/.cache/spotifast/audio/` | Always |
 | Artwork cache | `~/.cache/spotifast/art/` | Always |
 | Lyrics cache | `~/.cache/spotifast/lyrics/` | Always |
-| AI insights cache | `~/.cache/spotifast/insights/` | Always |
+| AI insights cache (briefings and MusicBrainz credits) | `~/.cache/spotifast/insights/` | Always |
 | Account-scoped playlist page cache | `~/.cache/spotifast/playlists/<account-id>/` | Always |
 | Last run's log | `~/.local/state/spotifast/spotifast.log` | Always |
 | Crash log | `~/.local/state/spotifast/panic.log` | Always |
