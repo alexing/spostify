@@ -3204,3 +3204,163 @@ msgstr ""
 "У Windows на ARM Spotifast використовує OpenGL із пакета Microsoft OpenCL, "
 "OpenGL & Vulkan Compatibility Pack. Відкрити його сторінку в Microsoft "
 "Store, щоб установити або відновити пакет?"
+
+#: src/ui/insights.rs:23
+msgid "AI insights"
+msgstr "ШІ-довідка"
+
+#: src/ui/insights.rs:112
+msgid "The answer was cut short."
+msgstr "Відповідь обірвалася."
+
+#: src/ui/insights.rs:136
+msgid "Song"
+msgstr "Пісня"
+
+#. Translators: {name} is an album, artist or song name.
+#: src/ui/insights.rs:180
+#, rust-format
+msgid "Researching “{name}”…"
+msgstr "Досліджуємо «{name}»…"
+
+#: src/ui/insights.rs:187
+msgid ""
+"Claude is checking MusicBrainz credits and the web. This can take a minute."
+msgstr "Claude перевіряє дані про учасників у MusicBrainz та в інтернеті. Це може тривати хвилину."
+
+#: src/ui/insights.rs:201
+msgid ""
+"AI insights are written by Claude with your own Anthropic API key. Add one "
+"in Settings to start."
+msgstr "ШІ-довідку пише Claude з вашим власним API-ключем Anthropic. Додайте його в налаштуваннях, щоб почати."
+
+#: src/ui/insights.rs:206
+msgid "Anthropic rejected the API key. Check it in Settings."
+msgstr "Anthropic відхилив API-ключ. Перевірте його в налаштуваннях."
+
+#: src/ui/insights.rs:211
+msgid "Anthropic is limiting requests from this key. Try again in a minute."
+msgstr "Anthropic обмежує запити з цього ключа. Спробуйте ще раз за хвилину."
+
+#: src/ui/insights.rs:215
+msgid "Anthropic is busy right now. Try again shortly."
+msgstr "Anthropic зараз перевантажений. Спробуйте трохи згодом."
+
+#: src/ui/insights.rs:217
+msgid "Claude declined to write about this item."
+msgstr "Claude відмовився писати про цей елемент."
+
+#: src/ui/insights.rs:218
+msgid "Claude returned an empty answer. Try again."
+msgstr "Claude повернув порожню відповідь. Спробуйте ще раз."
+
+#: src/ui/insights.rs:219
+msgid "AI insights need a network connection."
+msgstr "Для ШІ-довідки потрібне підключення до мережі."
+
+#. Translators: {error} is a network error message.
+#: src/ui/insights.rs:221
+#, rust-format
+msgid "Couldn't reach Anthropic: {error}"
+msgstr "Не вдалося зв'язатися з Anthropic: {error}"
+
+#. Translators: {error} is the error Anthropic reported.
+#: src/ui/insights.rs:230
+#, rust-format
+msgid "Anthropic returned an error: {error}"
+msgstr "Anthropic повернув помилку: {error}"
+
+#: src/ui/insights.rs:252
+msgid "Open Settings"
+msgstr "Відкрити налаштування"
+
+#: src/ui/insights.rs:280
+msgid "Regenerate"
+msgstr "Створити знову"
+
+#: src/ui/insights.rs:295
+msgid ""
+"Written by Claude from MusicBrainz credits and web search. It can make "
+"mistakes."
+msgstr "Написано Claude на основі даних MusicBrainz і пошуку в інтернеті. Можливі помилки."
+
+#. Translators: {date} is a date in YYYY-MM-DD form.
+#: src/ui/insights.rs:313
+#, rust-format
+msgid "Saved {date}"
+msgstr "Збережено {date}"
+
+#. Translators: {date} is a date in YYYY-MM-DD form.
+#: src/ui/insights.rs:316
+#, rust-format
+msgid "Written {date}"
+msgstr "Написано {date}"
+
+#: src/ui/insights.rs:463 src/ui/insights.rs:472
+msgid "Anthropic API key"
+msgstr "API-ключ Anthropic"
+
+#: src/ui/insights.rs:475
+msgid ""
+"Claude writes the insights with your own key. Each new insight is a paid "
+"request to Anthropic. The key is kept in the system credential store."
+msgstr "Claude пише довідки з вашим власним ключем. Кожна нова довідка — платний запит до Anthropic. Ключ зберігається в системному сховищі облікових даних."
+
+#: src/ui/insights.rs:491
+msgid "A key is saved in the system credential store."
+msgstr "Ключ збережено в системному сховищі облікових даних."
+
+#: src/ui/insights.rs:493
+msgid "Using the ANTHROPIC_API_KEY environment variable."
+msgstr "Використовується змінна середовища ANTHROPIC_API_KEY."
+
+#: src/ui/insights.rs:495
+msgid "No key yet."
+msgstr "Ключа ще немає."
+
+#: src/ui/insights.rs:498
+msgid ""
+"The system credential store is unavailable. Unlock it, or set "
+"ANTHROPIC_API_KEY."
+msgstr "Системне сховище облікових даних недоступне. Розблокуйте його або задайте ANTHROPIC_API_KEY."
+
+#: src/ui/insights.rs:535
+msgid "Save key"
+msgstr "Зберегти ключ"
+
+#: src/ui/insights.rs:544
+msgid "Remove key"
+msgstr "Видалити ключ"
+
+#: src/ui/insights.rs:553
+msgid "Create a key in the Anthropic Console"
+msgstr "Створити ключ у консолі Anthropic"
+
+#: src/ui/insights.rs:228
+msgid "Checking MusicBrainz credits…"
+msgstr "Перевірка даних MusicBrainz…"
+
+#: src/ui/insights.rs:229
+msgid "Searching the web…"
+msgstr "Пошук в інтернеті…"
+
+#: src/ui/insights.rs:230
+msgid "Claude is writing a quick overview."
+msgstr "Claude пише короткий огляд."
+
+#: src/ui/insights.rs:247
+msgid "Writing…"
+msgstr "Пишеться…"
+
+#: src/ui/insights.rs:339
+msgid "Dig deeper"
+msgstr "Детальніше"
+
+#. Translators: A tooltip on the Dig deeper button.
+#: src/ui/insights.rs:344
+msgid "A longer briefing that also searches the web. It takes about a minute."
+msgstr "Докладніша довідка з пошуком в інтернеті. Займає близько хвилини."
+
+#: src/ui/insights.rs:368
+msgid "Written by Claude from MusicBrainz credits and its own knowledge. It can make mistakes."
+msgstr "Написано Claude на основі даних MusicBrainz і власних знань. Можливі помилки."

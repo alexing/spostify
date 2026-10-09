@@ -669,6 +669,7 @@ pub fn language_name(locale: crate::i18n::Locale) -> String {
         Locale::ChineseSimplified => "Simplified Chinese",
         Locale::ChineseTraditional => "Traditional Chinese",
         Locale::Turkish => "Turkish",
+        Locale::Ukrainian => "Ukrainian",
     };
     if english == locale.native_name() {
         english.to_string()
