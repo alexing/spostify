@@ -13,7 +13,7 @@ use super::Error;
 use super::prompt::SYSTEM;
 
 const URL: &str = "https://api.anthropic.com/v1/messages";
-pub const MODEL: &str = "claude-opus-5-5";
+pub const MODEL: &str = "claude-sonnet-5-5";
 const API_VERSION: &str = "2023-06-01";
 /// Lets Anthropic answer a declined request with its recommended fallback
 /// model instead of returning the refusal.
@@ -275,7 +275,7 @@ mod tests {
     #[test]
     fn the_request_has_the_exact_shape_the_api_expects() {
         let body = request_body(&[user_message("About this album")]);
-        assert_eq!(body["model"], "claude-opus-5-5");
+        assert_eq!(body["model"], "claude-sonnet-5-5");
         assert_eq!(body["max_tokens"], 16_000);
         assert_eq!(body["output_config"], json!({ "effort": "medium" }));
         assert_eq!(body["fallbacks"], "default");
