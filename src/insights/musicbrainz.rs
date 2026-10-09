@@ -1,10 +1,13 @@
 //! Credits from [MusicBrainz](https://musicbrainz.org), which needs no key.
 //!
 //! Each item takes two requests: a search that finds the best match for
-//! what Spotify calls it, then a lookup of that match with its
-//! relationships, which is where producers, engineers, players, studios and
-//! writers are recorded. MusicBrainz asks for a descriptive User-Agent and at
-//! most one request a second from each client; both are honoured here.
+//! what Spotify calls it, then one lookup of that match that includes all
+//! its relationships (`inc=`), which is where producers, engineers, players,
+//! studios and writers are recorded. A song is searched by its ISRC and its
+//! album in a single query; only when neither matches does a broader search
+//! follow. MusicBrainz asks for a descriptive User-Agent and at most one
+//! request a second from each client; both are honoured here, with one
+//! limiter shared by every lookup in the app.
 //!
 //! The parsing below is separate from the requests so it can be tested
 //! against small fixtures.
@@ -12,6 +15,7 @@
 use std::time::Duration;
 
 use anyhow::{Context, Result};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use super::{Kind, Subject};
@@ -25,14 +29,16 @@ const USER_AGENT: &str = concat!(
 );
 /// A little over MusicBrainz's one request a second.
 const SPACING: Duration = Duration::from_millis(1100);
-const TIMEOUT: Duration = Duration::from_secs(20);
+/// MusicBrainz answers in a second or two; one that takes longer is not
+/// worth holding a briefing for.
+const TIMEOUT: Duration = Duration::from_secs(10);
 /// Enough credits for a large record without flooding the prompt.
 const MAX_CREDITS: usize = 300;
 /// Albums listed for an artist.
 const MAX_ALBUMS: usize = 30;
 
 /// What MusicBrainz knows about the item.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Credits {
     /// The matched entity's page, which the prompt cites.
     pub url: String,
@@ -42,7 +48,7 @@ pub struct Credits {
 }
 
 /// One person or place in one role.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Credit {
     /// The relationship as MusicBrainz names it, with its attributes:
     /// "producer", "instrument (bass guitar)", "recorded at".
@@ -74,25 +80,20 @@ pub async fn lookup(http: &reqwest::Client, subject: &Subject) -> Result<Option<
             Ok(Some(release_credits(&release)))
         }
         Kind::Track => {
-            // The ISRC names the exact recording when MusicBrainz has it;
-            // many are missing there, so the name is asked next.
+            // The ISRC names the exact recording when MusicBrainz has it,
+            // and the album finds the version Spotify plays; one query asks
+            // for both. Any recording of the song is asked for only when
+            // that finds nothing.
             let mut id = None;
-            if let Some(query) = isrc_query(subject) {
-                let found = get(http, "recording", &[("query", &query), ("limit", "25")]).await?;
-                id = best_recording(&found, subject);
-            }
-            for query in [
-                album_recording_query(subject),
-                Some(recording_query(subject)),
-            ]
-            .into_iter()
-            .flatten()
+            for query in [track_query(subject), Some(recording_query(subject))]
+                .into_iter()
+                .flatten()
             {
+                let found = get(http, "recording", &[("query", &query), ("limit", "100")]).await?;
+                id = best_recording(&found, subject);
                 if id.is_some() {
                     break;
                 }
-                let found = get(http, "recording", &[("query", &query), ("limit", "100")]).await?;
-                id = best_recording(&found, subject);
             }
             let Some(id) = id else {
                 return Ok(None);
@@ -198,6 +199,16 @@ fn isrc_query(subject: &Subject) -> Option<String> {
         .as_deref()
         .filter(|isrc| !isrc.is_empty() && isrc.chars().all(|c| c.is_ascii_alphanumeric()))
         .map(|isrc| format!("isrc:{isrc}"))
+}
+
+/// The exact recording by ISRC, or failing that the song on its album. The
+/// ISRC is boosted so its match leads the results however many album
+/// versions there are.
+fn track_query(subject: &Subject) -> Option<String> {
+    match (isrc_query(subject), album_recording_query(subject)) {
+        (Some(isrc), Some(album)) => Some(format!("{isrc}^50 OR ({album})")),
+        (isrc, album) => isrc.or(album),
+    }
 }
 
 /// The song on the album Spotify has it on. This finds album versions
@@ -349,11 +360,13 @@ pub fn best_release(results: &Value, subject: &Subject) -> Option<String> {
         .filter(|id| !id.is_empty())
 }
 
-/// The best recording: the same title by the same artist, the studio
-/// original over a version with a disambiguation such as "live", then the
-/// earliest released, then MusicBrainz's own order.
+/// The best recording: the one with Spotify's ISRC, the same title by the
+/// same artist, the studio original over a version with a disambiguation
+/// such as "live", then the earliest released, then MusicBrainz's own
+/// order.
 pub fn best_recording(results: &Value, subject: &Subject) -> Option<String> {
     let recordings = results.get("recordings")?.as_array()?;
+    let isrc = subject.isrc.as_deref().unwrap_or_default();
     recordings
         .iter()
         .enumerate()
@@ -362,8 +375,18 @@ pub fn best_recording(results: &Value, subject: &Subject) -> Option<String> {
             let title = title_match(text(recording, "title"), &subject.name);
             (title > 0).then(|| {
                 let plain = text(recording, "disambiguation").is_empty();
+                let exact = !isrc.is_empty()
+                    && recording
+                        .get("isrcs")
+                        .and_then(Value::as_array)
+                        .is_some_and(|isrcs| {
+                            isrcs.iter().any(|code| {
+                                code.as_str()
+                                    .is_some_and(|code| code.eq_ignore_ascii_case(isrc))
+                            })
+                        });
                 (
-                    (title, plain),
+                    (exact, title, plain),
                     std::cmp::Reverse(date_key(text(recording, "first-release-date"))),
                     std::cmp::Reverse(index),
                     text(recording, "id"),
@@ -811,8 +834,20 @@ mod tests {
         );
         song.isrc = Some("USWB18700123".into());
         assert_eq!(isrc_query(&song).as_deref(), Some("isrc:USWB18700123"));
+        assert_eq!(
+            track_query(&song).as_deref(),
+            Some(
+                "isrc:USWB18700123^50 OR (recording:(\"it\"^4 OR (it)) AND artist:\"Prince\" \
+                 AND release:(\"sign o the times\"^4 OR (sign o the times)))"
+            )
+        );
+        song.album = None;
+        assert_eq!(track_query(&song).as_deref(), Some("isrc:USWB18700123"));
         song.isrc = Some("bad isrc\"".into());
         assert_eq!(isrc_query(&song), None);
+        assert_eq!(track_query(&song), None);
+        song.album = Some("Lovesexy".into());
+        assert_eq!(track_query(&song), album_recording_query(&song));
     }
 
     #[test]
@@ -890,6 +925,21 @@ mod tests {
         ]});
         let wanted = subject(Kind::Track, "U Got the Look", Some("Prince"));
         assert_eq!(best_recording(&results, &wanted).as_deref(), Some("studio"));
+    }
+
+    #[test]
+    fn the_recording_with_spotifys_isrc_wins() {
+        let results = json!({ "recordings": [
+            { "id": "studio", "score": 100, "title": "Purple Rain",
+              "first-release-date": "1984-06-25", "artist-credit": credit("Prince") },
+            { "id": "exact", "score": 7, "title": "Purple Rain", "disambiguation": "live, 1983",
+              "isrcs": ["XX0000000001", "uswb10400044"],
+              "first-release-date": "1984-06-25", "artist-credit": credit("Prince") }
+        ]});
+        let mut wanted = subject(Kind::Track, "Purple Rain", Some("Prince"));
+        assert_eq!(best_recording(&results, &wanted).as_deref(), Some("studio"));
+        wanted.isrc = Some("USWB10400044".into());
+        assert_eq!(best_recording(&results, &wanted).as_deref(), Some("exact"));
     }
 
     #[test]
